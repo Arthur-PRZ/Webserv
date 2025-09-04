@@ -1,6 +1,6 @@
 #include "Location.hpp"
 
-Location::Location(): methods("Unknown"),  root("Unknown"), cgi_extensions("Unknown"), uploads_path("Unknown"), redirect("Unknown"), autoindex(false) {}
+Location::Location(): methods(""),  root(""), cgi_extensions(""), uploads_path(""), redirect(""), autoindex(false) {}
 
 Location::~Location() {}
 
