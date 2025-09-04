@@ -1,10 +1,26 @@
 #include "Server.hpp"
 
-Server::Server(): _host(""), _port(""), _serverName(""), _root(""), _index(""), _errorPages(""), _clientMaxBodySize(""), _locations() {}
+Server::Server()
+	: _host(""),
+	  _port(""),
+	  _serverName(""),
+	  _root(""),
+	  _index(""),
+	  _errorPages(""),
+	  _clientMaxBodySize(""),
+	  _locations() {}
 
 Server::~Server() {}
 
-Server::Server(const Server& other): _host(other._host), _port(other._port), _serverName(other._serverName), _root(other._root), _index(other._index), _errorPages(other._errorPages), _clientMaxBodySize(other._clientMaxBodySize), _locations(other._locations) {}
+Server::Server(const Server& other)
+	: _host(other._host),
+	  _port(other._port),
+	  _serverName(other._serverName),
+	  _root(other._root),
+	  _index(other._index),
+	  _errorPages(other._errorPages),
+	  _clientMaxBodySize(other._clientMaxBodySize),
+	  _locations(other._locations) {}
 
 Server &Server::operator=(const Server& other) {
 	if (this != &other)
