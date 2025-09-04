@@ -1,23 +1,42 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "Server.hpp"
+#include <map>
 
 void parser(std::ifstream &file, Server &server)
 {
     std::string line;
-    size_t curr = 0;
-    std::string tab[] = {"host" : setHost(), "server_name"}
+    size_t strSize = 0;
+    std::map<std::string, void(Server::*)(const std::string&)> setters =
+    {
+        {"host",     &Server::setHost},
+        {"port",     &Server::setPort},
+        {"    ",     &Server::set},
+        {"    ",     &Server::set},
+        {"    ",     &Server::set},
+        {"    ",     &Server::set},
+        {"    ",     &Server::set},
+        {"    ",     &Server::set},
+        {"    ",     &Server::set},
+    };
+
+    std::map<std::string, void(Server::*)(const std::string&)>::iterator curr;
 
     while (std::getline(file, line))
     {
-        if (line.find(tab[i]) != std::string::npos)
+        for (curr = setters.begin(); curr != setters.end(); curr++)
         {
-            curr = line.find(tab[i]);
+            if (line.find(curr->first) != std::string::npos)
+            {
+                Server server;
 
-            std::string value = line.substr(curr + 5);
-            value.pop_back();
-            server.setHost(value);
+                strSize = line.find(curr->first);
+                std::string value = line.substr(strSize + curr->first.size() + 1);
+                value.pop_back();
+                std::cout << value << std::endl;
+                (server.*(curr->second))(value);
+            }  
         }
     }
-
 }
