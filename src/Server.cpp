@@ -1,5 +1,4 @@
 #include "Server.hpp"
-#include <vector>
 
 Server::Server(): _host(""), _port(""), _serverName(""), _root(""), _index(""), _errorPages(""), _clientMaxBodySize(""), _locations() {}
 
@@ -53,31 +52,31 @@ const std::vector<Location> &Server::getLocations() const {
 	return _locations;
 }
 
-void Server::setPort( const std::string port ) {
+void Server::setPort( const std::string& port ) {
 	_port = port;
 }
 
-void Server::setHost( const std::string host ) {
+void Server::setHost( const std::string& host ) {
 	_host = host;
 }
 
-void Server::setServerName( const std::string serverName ) {
+void Server::setServerName( const std::string& serverName ) {
 	_serverName = serverName;
 }
 
-void Server::setRoot( const std::string root ) {
+void Server::setRoot( const std::string& root ) {
 	_root = root;
 }
 
-void Server::setIndex( const std::string index ) {
+void Server::setIndex( const std::string& index ) {
 	_index = index;
 }
 
-void Server::setErrorPages( const std::string errorPages ) {
+void Server::setErrorPages( const std::string& errorPages ) {
 	_errorPages = errorPages;
 }
 
-void Server::setClientMaxBodySize( const std::string clientMaxBodySize ) {
+void Server::setClientMaxBodySize( const std::string& clientMaxBodySize ) {
 	_clientMaxBodySize = clientMaxBodySize;
 }
 
