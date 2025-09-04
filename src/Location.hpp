@@ -2,12 +2,12 @@
 
 class Location {
 	private:
-		const std::string methods;
-		const std::string root;
-		const std::string cgi_extensions;
-		const std::string uploads_path;
-		const std::string redirect;
-		bool autoindex;
+		std::string _methods;
+		std::string _root;
+	 	std::string _cgi_extensions;
+	 	std::string _uploads_path;
+		std::string _redirect;
+		bool _autoindex;
 
 	public:
 		Location();

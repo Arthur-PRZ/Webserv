@@ -1,7 +1,7 @@
 #include "Server.hpp"
 #include <vector>
 
-Server::Server(): _host(""), _port(0), _serverName(""), _root(""), _index(""), _errorPages(""), _clientMaxBodySize(""), _locations() {}
+Server::Server(): _host(""), _port(""), _serverName(""), _root(""), _index(""), _errorPages(""), _clientMaxBodySize(""), _locations() {}
 
 Server::~Server() {}
 
@@ -21,7 +21,7 @@ Server &Server::operator=(const Server& other) {
 	return *this;
 }
 
-int Server::getPort() const {
+const std::string &Server::getPort() const {
 	return _port;
 }
 
@@ -53,7 +53,7 @@ const std::vector<Location> &Server::getLocations() const {
 	return _locations;
 }
 
-void Server::setPort( int port ) {
+void Server::setPort( const std::string port ) {
 	_port = port;
 }
 

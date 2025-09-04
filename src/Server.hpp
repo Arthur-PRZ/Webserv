@@ -5,7 +5,7 @@
 class Server {
 	private:
 		std::string _host;
-		int _port;
+		std::string _port;
 		std::string _serverName;
 		std::string _root;
 		std::string _index;
@@ -18,15 +18,16 @@ class Server {
 		~Server();
 		Server(const Server& other);
 		Server &operator=(const Server& other);
-		int getPort( void ) const;
+		const std::string &getPort( void ) const;
 		const std::string &getHost( void ) const;
 		const std::string &getServerName( void ) const;
 		const std::string &getRoot( void ) const;
 		const std::string &getIndex( void ) const;
 		const std::string &getErrorPages( void ) const;
 		const std::string &getClientMaxBodySize( void ) const;
-		const std::vector<Location> &getLocations( void ) const;		
-		void setPort( int port );
+		const std::vector<Location> &getLocations( void ) const;
+	
+		void setPort( const std::string port );
 		void setHost( const std::string host );
 		void setServerName( const std::string serverName );
 		void setRoot( const std::string root );
