@@ -1,4 +1,5 @@
 #include "Location.hpp"
+#include "iostream"
 
 Location::Location()
 	: _methods(""),
@@ -83,3 +84,7 @@ void Location::setAutoIndex( const bool autoindex) {
 	_autoindex = autoindex;
 }
 
+void Location::aff()
+{
+	std::cout << _methods << std::endl;
+}

@@ -30,6 +30,8 @@ class Location {
 		void setUploadsPath( const std::string& uploadsPath );
 		void setRedirect( const std::string& redirect);
 		void setAutoIndex( const bool autoindex );
+
+		void aff();
 };
 
 #endif

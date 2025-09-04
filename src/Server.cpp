@@ -84,3 +84,7 @@ void Server::setLocations( const std::vector<Location>& locations ) {
 	_locations = locations;
 }
 
+void Server::addLocation( const Location &location ) 
+{
+	_locations.push_back(location);
+}

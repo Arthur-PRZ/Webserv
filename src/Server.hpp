@@ -13,13 +13,13 @@ class Server {
 		std::string _index;
 		std::string _errorPages;
 		std::string _clientMaxBodySize;
-		std::vector<Location> _locations;
 
 	public:
 		Server();
 		~Server();
 		Server(const Server& other);
 		Server &operator=(const Server& other);
+		std::vector<Location> _locations;
 
 		const std::string &getPort( void ) const;
 		const std::string &getHost( void ) const;
@@ -38,6 +38,9 @@ class Server {
 		void setErrorPages( const std::string& errorPages );
 		void setClientMaxBodySize( const std::string& clientMaxBodySize );
 		void setLocations( const std::vector<Location>& locations );
+
+		void addLocation( const Location &location );
+
 };
 
 #endif
