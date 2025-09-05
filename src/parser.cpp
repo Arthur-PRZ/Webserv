@@ -27,17 +27,17 @@ void parser(std::ifstream &file, Server &server)
             {
                 strSize = line.find(curr->first);
                 std::string value = line.substr(strSize + curr->first.size() + 1);
-                value.pop_back();
+                value.erase(value.size() - 1);
                 (server.*(curr->second))(value);
             }  
         }
     }
 }
 
-int main()
-{
-    Server server;
+// int main()
+// {
+//     Server server;
 
-    std::ifstream file("../config.conf");
-    parser(file, server);
-}
+//     std::ifstream file("../config.conf");
+//     parser(file, server);
+// }

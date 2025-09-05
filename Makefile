@@ -2,12 +2,14 @@ CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 NAME = webserv
 SRCDIR = src
-SRC = main.cpp
+SRC = main.cpp Socket.cpp Server.cpp Location.cpp parser.cpp
+
+SRCS = $(addprefix $(SRCDIR)/,$(SRC))
 
 all: $(NAME)
 
-$(NAME): $(SRCDIR)/$(SRC)
-	@$(CC) $(CFLAGS) $(SRCDIR)/$(SRC) -o $(NAME)
+$(NAME): $(SRCS)
+	@$(CC) $(CFLAGS) $(SRCS) -o $(NAME)
 	@echo "Compiling with $(CFLAGS) flags"
 
 clean:
@@ -17,4 +19,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all debug clean fclean re
+.PHONY: all clean fclean re

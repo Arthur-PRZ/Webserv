@@ -1,4 +1,5 @@
 #include <exception>
+#include <iterator>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -9,57 +10,58 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include "Socket.hpp"
+#include <fstream>
+#include <sstream>
 
 int main() {
 	try {
 		Socket server(AF_INET, SOCK_STREAM, 0);
 		server.bind(8080);
 		server.listen();
-		while (true)
-		{
-			int client_fd = server.accept();
-			int file_fd = open("index.html", O_RDONLY);
-			if (file_fd == -1) {
-				const char* not_found = 
-					"HTTP/1.1 404 Not Found\r\n"
-					"Content-Length: 0\r\n"
-					"\r\n";
-				send(client_fd, not_found, strlen(not_found), 0);
-				close(client_fd);
-				return 1;
-			}
-		
-			struct stat st;
-			if (fstat(file_fd, &st) == -1) {
-				close(file_fd);
-				close(client_fd);
-				return 1;
-			}
-			size_t file_size = st.st_size;
-		
-			char* buffer = new char[file_size];
-			ssize_t bytes_read = read(file_fd, buffer, file_size);
-			close(file_fd);
-		
-			if (bytes_read <= 0) bytes_read = 0;
-		
-			const char* headers1 = "HTTP/1.1 200 OK\r\n";
-			const char* headers2 = "Content-Type: text/html\r\n";
-		
-			char content_length[64] = "Content-Length: ";
-			char num[20];
-			int len = 0, size = file_size;
-			if (size == 0) num[len++] = '0';
-			while (size > 0) { num[len++] = '0' + (size % 10); size /= 10; }
-			for (int i = 0; i < len/2; ++i) { char tmp=num[i]; num[i]=num[len-1-i]; num[len-1-i]=tmp; }
-			std::memcpy(content_length + 16, num, len);
-			std::memcpy(content_length + 16 + len, "\r\n\r\n", 4);
-			send(client_fd, headers1, strlen(headers1), 0);
-			send(client_fd, headers2, strlen(headers2), 0);
-			send(client_fd, content_length, 16+len+4, 0);
-			send(client_fd, buffer, bytes_read, 0);
-			delete[] buffer;
-			close(client_fd);
+		while (true) {
+		    int client_fd = server.accept();
+
+		    // --- Lire la requête HTTP ---
+		    std::string request;
+		    char buffer[1024];
+		    while (true) {
+		        int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+		        if (bytes_received <= 0) break;
+		        buffer[bytes_received] = '\0';
+		        request += buffer;
+		        if (request.find("\r\n\r\n") != std::string::npos) break;
+		    }
+		    std::cout << request << std::endl;
+
+		    // --- Lire le fichier HTML ---
+		    std::ifstream file("www/index.html", std::ios::binary);
+		    std::string content;
+		    if (file) {
+		        content.assign((std::istreambuf_iterator<char>(file)),
+		                       std::istreambuf_iterator<char>());
+		    }
+
+		    // --- Préparer la réponse HTTP ---
+		    std::stringstream ss;
+		    ss << content.size();
+		    std::string content_length = ss.str();
+
+		    std::string response =
+		        "HTTP/1.1 200 OK\r\n"
+		        "Content-Type: text/html\r\n"
+		        "Content-Length: " + content_length + "\r\n"
+		        "\r\n" + content;
+
+		    // --- Envoyer toute la réponse ---
+		    size_t total_sent = 0;
+		    while (total_sent < response.size()) {
+		        ssize_t n = send(client_fd, response.c_str() + total_sent,
+		                         response.size() - total_sent, 0);
+		        if (n == -1) { perror("send failed"); break; }
+		        total_sent += n;
+		    }
+
+		    close(client_fd);
 		}
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
