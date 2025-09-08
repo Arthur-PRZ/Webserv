@@ -21,19 +21,19 @@ int main() {
 		while (true) {
 		    int client_fd = server.accept();
 
-		    // --- Lire la requête HTTP ---
 		    std::string request;
 		    char buffer[1024];
 		    while (true) {
 		        int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-		        if (bytes_received <= 0) break;
+		        if (bytes_received <= 0)
+					break;
 		        buffer[bytes_received] = '\0';
 		        request += buffer;
-		        if (request.find("\r\n\r\n") != std::string::npos) break;
+		        if (request.find("\r\n\r\n") != std::string::npos)
+					break;
 		    }
 		    std::cout << request << std::endl;
 
-		    // --- Lire le fichier HTML ---
 		    std::ifstream file("www/index.html", std::ios::binary);
 		    std::string content;
 		    if (file) {
@@ -41,7 +41,6 @@ int main() {
 		                       std::istreambuf_iterator<char>());
 		    }
 
-		    // --- Préparer la réponse HTTP ---
 		    std::stringstream ss;
 		    ss << content.size();
 		    std::string content_length = ss.str();
@@ -52,15 +51,16 @@ int main() {
 		        "Content-Length: " + content_length + "\r\n"
 		        "\r\n" + content;
 
-		    // --- Envoyer toute la réponse ---
 		    size_t total_sent = 0;
 		    while (total_sent < response.size()) {
 		        ssize_t n = send(client_fd, response.c_str() + total_sent,
 		                         response.size() - total_sent, 0);
-		        if (n == -1) { perror("send failed"); break; }
+		        if (n == -1) {
+					throw std::runtime_error("send failed");
+					break;
+				}
 		        total_sent += n;
 		    }
-
 		    close(client_fd);
 		}
 	} catch (const std::exception& e) {
