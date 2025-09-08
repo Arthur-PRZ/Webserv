@@ -75,7 +75,7 @@ void parser(std::ifstream &file, Server &server)
             {
                 strSize = line.find(curr->first);
                 std::string value = line.substr(strSize + curr->first.size() + 1);
-                value.pop_back();
+                value.erase(value.size() - 1);
                 (server.*(curr->second))(value);
             } 
             if (line.find("location") != std::string::npos)
