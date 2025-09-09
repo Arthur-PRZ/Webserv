@@ -13,6 +13,7 @@
 #include <fstream>
 #include <sstream>
 
+//Penser a gerer plusieurs clients en utilisant poll()
 int main() {
 	try {
 		Socket server(AF_INET, SOCK_STREAM, 0);
@@ -33,8 +34,11 @@ int main() {
 					break;
 		    }
 		    std::cout << request << std::endl;
+			//Trouver GET et le chemin avec le contenu de request, Classe qui contient en BOOL -> Savoir si la page existe,
+			//gere aussi si on a un type inconnu (Autre que POST GET ou DELETE), savoir si c'est bien en HTTP 1.1
 
-		    std::ifstream file("www/index.html", std::ios::binary);
+			//Recup le chemin avec la std::string de la classe plus haut
+		    std::ifstream file(RequestManagement.getRequestType(), std::ios::binary);
 		    std::string content;
 		    if (file) {
 		        content.assign((std::istreambuf_iterator<char>(file)),
@@ -45,7 +49,12 @@ int main() {
 		    ss << content.size();
 		    std::string content_length = ss.str();
 
-		    std::string response =
+			//Classe Header ou Response qui renvoie le Header/content en fonction de si la page existe ou pas, stocke aussi le body dans le cas d'une requete POST
+			//Aussi la size de la reponse
+		    /*
+				Send.getResponse(); -> Renvoie une std::string avec la reponse
+			*/
+			std::string response =
 		        "HTTP/1.1 200 OK\r\n"
 		        "Content-Type: text/html\r\n"
 		        "Content-Length: " + content_length + "\r\n"
