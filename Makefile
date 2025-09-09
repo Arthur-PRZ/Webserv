@@ -2,7 +2,7 @@ CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 NAME = webserv
 SRCDIR = src
-SRC = main.cpp Socket.cpp Server.cpp Location.cpp parser.cpp
+SRC = main.cpp Socket.cpp Server.cpp Location.cpp parser.cpp RequestManagement.cpp
 
 SRCS = $(addprefix $(SRCDIR)/,$(SRC))
 
