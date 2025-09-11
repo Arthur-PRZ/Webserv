@@ -49,7 +49,7 @@ void setLocation(std::ifstream &file, Server &server)
     }
 }
 
-void parser(std::ifstream &file, Server &server)
+void parser_config(std::ifstream &file, Server &server)
 {
     std::string line;
     size_t strSize = 0;
@@ -85,4 +85,3 @@ void parser(std::ifstream &file, Server &server)
         }
     }
 }
-

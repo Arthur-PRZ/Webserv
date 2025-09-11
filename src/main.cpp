@@ -12,10 +12,12 @@
 #include "Socket.hpp"
 #include <fstream>
 #include <sstream>
+#include "RequestManagement.hpp"
 
 //Penser a gerer plusieurs clients en utilisant poll()
 int main() {
 	try {
+		RequestManagement requestManagement;
 		Socket server(AF_INET, SOCK_STREAM, 0);
 		server.bind(8080);
 		server.listen();
@@ -38,7 +40,8 @@ int main() {
 			//gere aussi si on a un type inconnu (Autre que POST GET ou DELETE), savoir si c'est bien en HTTP 1.1
 
 			//Recup le chemin avec la std::string de la classe plus haut
-		    std::ifstream file("www/index.html", std::ios::binary);
+			requestManagement.parser(request);
+		    std::ifstream file(requestManagement.getPath(), std::ios::binary);
 		    std::string content;
 		    if (file) {
 		        content.assign((std::istreambuf_iterator<char>(file)),
