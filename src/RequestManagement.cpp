@@ -1,6 +1,7 @@
 #include "RequestManagement.hpp"
 #include <sstream>
 #include <dirent.h>
+#include <string>
 #include <sys/stat.h>
 
 RequestManagement::RequestManagement()
@@ -50,35 +51,53 @@ void RequestManagement::parser(std::string &request)
         else if ( i == 1 )
         {
             if (word == "/")
-                _path = "index.html";
+                _path = "www/index.html";
             else
-                _path = word;
+                _path = "www" + word;
 
         }
         else if ( i == 2 )
             _httpVer = word;
         i++;
     }
-    setBool();
+    setBool(request);
 }
 
 bool RequestManagement::checkPath()
 {
-    std::string fileToFind = _path;
-    if (!fileToFind.empty() && fileToFind[0] == '/')
-        fileToFind.erase(0, 1);
+    if (!_path.empty() && _path[0] == '/')
+        _path.erase(0, 1);
 
-    std::string fullPath = "www/" + fileToFind;
     struct stat sb;
-    return stat(fullPath.c_str(), &sb) == 0;
+    return stat(_path.c_str(), &sb) == 0;
 }
 
-void RequestManagement::setBool()
+void RequestManagement::setBody(std::string &request)
+{
+    size_t pos = 0;
+    size_t wordSize = 0;
+
+    pos = request.find("Content-Length:");
+    pos = request.find(' ', pos);
+    wordSize = request.find(' ', pos) - pos;
+
+    std::cout << request.find(' ', pos) - pos << " aaaa" << std::endl;
+
+    _body = request.substr(pos, wordSize);
+    std::cout << _body << " moi" << std::endl;
+}
+
+void RequestManagement::setBool(std::string &request)
 {
     if (_method.find("GET") != std::string::npos
         || _method.find("POST") != std::string::npos
         || _method.find("DELETE") != std::string::npos)
+    {
         _methodFound = true;
+        if (_method.find("POST") != std::string::npos)
+            setBody(request);
+    }
+
     else
         _methodFound = false;
     if ((_path[0] == '/' && _path[1] == '\0') || checkPath() == true)
