@@ -6,9 +6,9 @@
 #include <sstream>
 #include <fstream>
 
-SendManagement::SendManagement() : _response(""){}
+SendManagement::SendManagement() : _response(""), _request() {}
 
-SendManagement::SendManagement(RequestManagement request) : _response(""), _request(request){}
+SendManagement::SendManagement(RequestManagement request) : _response(""), _request(request) {}
 
 SendManagement::~SendManagement() {}
 
@@ -19,14 +19,14 @@ void SendManagement::sendResponse(int client_fd) {
 }
 
 void SendManagement::CheckRequest() {
-	if (_request.pageFound)
+	if (_request.getPageFound())
 		OK();
 	else
 		ErrorNotFound();
 }
 
 void SendManagement::OK() {
-	std::ifstream file(_request.getPath(), std::ios::binary);
+	std::ifstream file(_request.getPath().c_str(), std::ios::binary);
 	std::string content;
 	if (file) {
 		content.assign((std::istreambuf_iterator<char>(file)),
@@ -40,7 +40,7 @@ void SendManagement::OK() {
 }
 
 void SendManagement::ErrorNotFound() {
-	std::ifstream ErrorPage(_request.getPath(), std::ios::binary);
+	std::ifstream ErrorPage(_request.getPath().c_str(), std::ios::binary);
 	std::string content;
 	if (ErrorPage) {
 			content.assign((std::istreambuf_iterator<char>(ErrorPage)),
@@ -52,4 +52,3 @@ void SendManagement::ErrorNotFound() {
 	std::string content_length = ss.str();
 	_response += "HTTP/1.1 404 NotFound\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
-

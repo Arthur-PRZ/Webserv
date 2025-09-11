@@ -46,7 +46,12 @@ void RequestManagement::parser(std::string &request)
         if ( i == 0 )
             _method = word;
         else if ( i == 1 )
-            _path = word;
+		{
+			if (word == "/")
+				_path = "www/index.html";
+			else
+            	_path = word;
+		}
         else if ( i == 2 )
             _httpVer = word;
         i++;

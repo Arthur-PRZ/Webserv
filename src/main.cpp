@@ -13,11 +13,13 @@
 #include <fstream>
 #include <sstream>
 #include "RequestManagement.hpp"
+#include "SendManagement.hpp"
 
 //Penser a gerer plusieurs clients en utilisant poll()
 int main() {
 	try {
 		RequestManagement requestManagement;
+		SendManagement sendManagement(requestManagement);
 		Socket server(AF_INET, SOCK_STREAM, 0);
 		server.bind(8080);
 		server.listen();
@@ -41,7 +43,8 @@ int main() {
 
 			//Recup le chemin avec la std::string de la classe plus haut
 			requestManagement.parser(request);
-		    std::ifstream file(requestManagement.getPath(), std::ios::binary);
+			sendManagement.CheckRequest();
+		    std::ifstream file(requestManagement.getPath().c_str(), std::ios::binary);
 		    std::string content;
 		    if (file) {
 		        content.assign((std::istreambuf_iterator<char>(file)),
