@@ -26,7 +26,7 @@ void Socket::bind(int port) {
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	addr.sin_port = htons(port);
 	if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
-		throw std::runtime_error("socket failed");
+		throw std::runtime_error("bind failed");
 }
 
 void Socket::listen() {

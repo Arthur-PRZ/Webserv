@@ -41,7 +41,8 @@ int main() {
 
 			//Recup le chemin avec la std::string de la classe plus haut
 			requestManagement.parser(request);
-		    std::ifstream file(requestManagement.getPath(), std::ios::binary);
+			std::string filePath = requestManagement.getPath();
+		    std::ifstream file(filePath.c_str(), std::ios::binary);
 		    std::string content;
 		    if (file) {
 		        content.assign((std::istreambuf_iterator<char>(file)),
