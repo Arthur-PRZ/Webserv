@@ -35,7 +35,7 @@ int main() {
 		        if (request.find("\r\n\r\n") != std::string::npos)
 					break;
 		    }
-		    std::cout << request << std::endl;
+		    // std::cout << request << std::endl;
 			//Trouver GET et le chemin avec le contenu de request, Classe qui contient en BOOL -> Savoir si la page existe,
 			//gere aussi si on a un type inconnu (Autre que POST GET ou DELETE), savoir si c'est bien en HTTP 1.1
 

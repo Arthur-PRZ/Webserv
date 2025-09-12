@@ -25,8 +25,11 @@ class RequestManagement
     RequestManagement &operator=(const RequestManagement &other);
     
     void parser(std::string &request);
-    void setBool();
+    void setBool(std::string &request);
+    void setBody(std::string &request);
     bool checkPath();
+
+    static int toInt(std::string &str);
 
     std::string getMethod();
     std::string getPath();
