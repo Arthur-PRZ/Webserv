@@ -38,6 +38,15 @@ RequestManagement::RequestManagement(const RequestManagement &other)
 {
 }
 
+int RequestManagement::toInt(std::string &str)
+{
+    std::istringstream iss(str);
+    int val = 0;
+
+    iss >> val;
+    return val;
+}
+
 void RequestManagement::parser(std::string &request)
 {
     std::string word;
@@ -75,16 +84,22 @@ bool RequestManagement::checkPath()
 void RequestManagement::setBody(std::string &request)
 {
     size_t pos = 0;
+    size_t posBefore;
     size_t wordSize = 0;
 
     pos = request.find("Content-Length:");
     pos = request.find(' ', pos);
-    wordSize = request.find(' ', pos) - pos;
+    pos++;
+    posBefore = pos;
+    
+    wordSize = request.find("\r\n", pos) - posBefore;
 
-    std::cout << request.find(' ', pos) - pos << " aaaa" << std::endl;
+    std::string lenght = request.substr(posBefore, wordSize);
+    std::cout << lenght << " lenght" << std::endl;
 
-    _body = request.substr(pos, wordSize);
-    std::cout << _body << " moi" << std::endl;
+    pos = request.find("username=", pos);
+    _body = request.substr(pos, toInt(lenght));
+    std::cout << _body << std::endl;
 }
 
 void RequestManagement::setBool(std::string &request)

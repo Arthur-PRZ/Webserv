@@ -29,6 +29,8 @@ class RequestManagement
     void setBody(std::string &request);
     bool checkPath();
 
+    static int toInt(std::string &str);
+
     std::string getMethod();
     std::string getPath();
     std::string getHttpVer();
