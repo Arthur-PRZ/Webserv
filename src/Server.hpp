@@ -37,10 +37,9 @@ class Server {
 		void setIndex( const std::string& index );
 		void setErrorPages( const std::string& errorPages );
 		void setClientMaxBodySize( const std::string& clientMaxBodySize );
-		void setLocations( const std::vector<Location>& locations );
+		void setLocationsServer( const std::vector<Location>& locations );
 
 		void addLocation( const Location &location );
-
 };
 
 #endif

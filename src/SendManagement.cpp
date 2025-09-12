@@ -1,4 +1,5 @@
 #include "SendManagement.hpp"
+#include <cstddef>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -6,9 +7,9 @@
 #include <sstream>
 #include <fstream>
 
-SendManagement::SendManagement() : _response(""), _request() {}
+SendManagement::SendManagement() : _response(""), _request() , _server(){}
 
-SendManagement::SendManagement(RequestManagement request) : _response(""), _request(request) {}
+SendManagement::SendManagement(RequestManagement request, Server server) : _response(""), _request(request) , _server(server){}
 
 SendManagement::~SendManagement() {}
 
@@ -47,7 +48,7 @@ void SendManagement::OK() {
 }
 
 void SendManagement::ErrorNotFound() {
-	std::ifstream ErrorPage("www/404_error.html", std::ios::binary);
+	std::ifstream ErrorPage((_server.getRoot() + "/404_error.html").c_str(), std::ios::binary);
 	std::string content;
 	if (ErrorPage) {
 			content.assign((std::istreambuf_iterator<char>(ErrorPage)),

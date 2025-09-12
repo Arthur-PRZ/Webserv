@@ -5,13 +5,13 @@
 
 RequestManagement::RequestManagement()
     : _method(""), _path(""), _httpVer(""), _body(""),
-      _methodFound(false), _pageFound(false), _goodVer(false)
-{
-}
+      _methodFound(false), _pageFound(false), _goodVer(false), _server() {}
 
-RequestManagement::~RequestManagement()
-{
-}
+RequestManagement::RequestManagement(Server server)
+    : _method(""), _path(""), _httpVer(""), _body(""),
+      _methodFound(false), _pageFound(false), _goodVer(false), _server(server) {}
+
+RequestManagement::~RequestManagement() {}
 
 RequestManagement &RequestManagement::operator=(const RequestManagement &other)
 {
@@ -50,9 +50,9 @@ void RequestManagement::parser(std::string &request)
         else if ( i == 1 )
         {
             if (word == "/")
-                _path = "www/index.html";
+                _path = (_server.getRoot() + "/index.html").c_str();
             else
-                _path = "www/" + word;
+                _path = (_server.getRoot() + "/" + word).c_str();
 
         }
         else if ( i == 2 )

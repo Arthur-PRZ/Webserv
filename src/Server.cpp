@@ -96,7 +96,7 @@ void Server::setClientMaxBodySize( const std::string& clientMaxBodySize ) {
 	_clientMaxBodySize = clientMaxBodySize;
 }
 
-void Server::setLocations( const std::vector<Location>& locations ) {
+void Server::setLocationsServer( const std::vector<Location>& locations ) {
 	_locations = locations;
 }
 
