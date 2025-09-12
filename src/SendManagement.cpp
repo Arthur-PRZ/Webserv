@@ -25,11 +25,11 @@ void SendManagement::sendResponse(int client_fd) {
 	}
 }
 
-void SendManagement::CheckRequest() {
+void SendManagement::checkRequest() {
 	if (_request.getPageFound())
 		OK();
 	else
-		ErrorNotFound();
+		errorNotFound();
 }
 
 void SendManagement::OK() {
@@ -47,7 +47,7 @@ void SendManagement::OK() {
 	_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
 
-void SendManagement::ErrorNotFound() {
+void SendManagement::errorNotFound() {
 	std::ifstream ErrorPage((_server.getRoot() + "/404_error.html").c_str(), std::ios::binary);
 	std::string content;
 	if (ErrorPage) {
@@ -60,3 +60,5 @@ void SendManagement::ErrorNotFound() {
 	std::string content_length = ss.str();
 	_response += "HTTP/1.1 404 NotFound\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
+
+void SendManagement::execPythonScript() {}

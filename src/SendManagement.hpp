@@ -21,9 +21,10 @@ class SendManagement {
 		void sendResponse(int client_fd);
 		const std::string &getResponse() const;
 		int &getResponseSize();
-		void CheckRequest();
+		void checkRequest();
 		void OK();
-		void ErrorNotFound();
+		void errorNotFound();
+		void execPythonScript();
 };
 
 #endif

@@ -45,7 +45,7 @@ int main() {
 			RequestManagement requestManagement(serverInfo);
 			requestManagement.parser(request);
 			SendManagement sendManagement(requestManagement, serverInfo);
-			sendManagement.CheckRequest();
+			sendManagement.checkRequest();
 			std::string filePath = requestManagement.getPath();
 		    std::ifstream file(filePath.c_str(), std::ios::binary);
 		    std::string content;
