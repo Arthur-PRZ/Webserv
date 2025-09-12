@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "Server.hpp"
 
 class RequestManagement
 {
@@ -16,10 +17,12 @@ class RequestManagement
     bool _methodFound;
     bool _pageFound;
     bool _goodVer;
+	Server _server;
 
     public :
 
-    RequestManagement();
+	RequestManagement();
+    RequestManagement(Server server);
     ~RequestManagement();
     RequestManagement(const RequestManagement &copy);
     RequestManagement &operator=(const RequestManagement &other);

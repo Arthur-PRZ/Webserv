@@ -13,14 +13,18 @@
 #include <fstream>
 #include <sstream>
 #include "RequestManagement.hpp"
+#include "SendManagement.hpp"
+#include "Server.hpp"
+#include "Parser.hpp"
 
 //Penser a gerer plusieurs clients en utilisant poll()
 int main() {
 	try {
-		RequestManagement requestManagement;
 		Socket server(AF_INET, SOCK_STREAM, 0);
+		Server serverInfo;
 		server.bind(8080);
 		server.listen();
+		std::ifstream configFile("config.conf", std::ios::binary);
 		while (true) {
 		    int client_fd = server.accept();
 
@@ -35,12 +39,13 @@ int main() {
 		        if (request.find("\r\n\r\n") != std::string::npos)
 					break;
 		    }
-		    // std::cout << request << std::endl;
-			//Trouver GET et le chemin avec le contenu de request, Classe qui contient en BOOL -> Savoir si la page existe,
-			//gere aussi si on a un type inconnu (Autre que POST GET ou DELETE), savoir si c'est bien en HTTP 1.1
+		    std::cout << request << std::endl;
 
-			//Recup le chemin avec la std::string de la classe plus haut
+			parserConfig(configFile, serverInfo);
+			RequestManagement requestManagement(serverInfo);
 			requestManagement.parser(request);
+			SendManagement sendManagement(requestManagement, serverInfo);
+			sendManagement.CheckRequest();
 			std::string filePath = requestManagement.getPath();
 		    std::ifstream file(filePath.c_str(), std::ios::binary);
 		    std::string content;
@@ -53,27 +58,7 @@ int main() {
 		    ss << content.size();
 		    std::string content_length = ss.str();
 
-			//Classe Header ou Response qui renvoie le Header/content en fonction de si la page existe ou pas, stocke aussi le body dans le cas d'une requete POST
-			//Aussi la size de la reponse
-		    /*
-				Send.getResponse(); -> Renvoie une std::string avec la reponse
-			*/
-			std::string response =
-		        "HTTP/1.1 200 OK\r\n"
-		        "Content-Type: text/html\r\n"
-		        "Content-Length: " + content_length + "\r\n"
-		        "\r\n" + content;
-
-		    size_t total_sent = 0;
-		    while (total_sent < response.size()) {
-		        ssize_t n = send(client_fd, response.c_str() + total_sent,
-		                         response.size() - total_sent, 0);
-		        if (n == -1) {
-					throw std::runtime_error("send failed");
-					break;
-				}
-		        total_sent += n;
-		    }
+			sendManagement.sendResponse(client_fd);
 		    close(client_fd);
 		}
 	} catch (const std::exception& e) {

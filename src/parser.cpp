@@ -1,9 +1,4 @@
-#include <string>
-#include <fstream>
-#include <vector>
-#include <iostream>
-#include "Server.hpp"
-#include <map>
+#include "Parser.hpp"
 
 void setLocation(std::ifstream &file, Server &server)
 {
@@ -49,7 +44,7 @@ void setLocation(std::ifstream &file, Server &server)
     }
 }
 
-void parser_config(std::ifstream &file, Server &server)
+void parserConfig(std::ifstream &file, Server &server)
 {
     std::string line;
     size_t strSize = 0;
@@ -63,7 +58,7 @@ void parser_config(std::ifstream &file, Server &server)
     setters["client_max_body_size"] = &Server::setClientMaxBodySize;
 
     std::map<std::string, void(Server::*)(const std::vector<Location>&)> location;
-    location["host"] = &Server::setLocations;
+    location["host"] = &Server::setLocationsServer;
 
     std::map<std::string, void(Server::*)(const std::string&)>::iterator curr;
 
