@@ -97,9 +97,10 @@ void RequestManagement::setBody(std::string &request)
     std::string lenght = request.substr(posBefore, wordSize);
     std::cout << lenght << " lenght" << std::endl;
 
-    pos = request.find("username=", pos);
+    pos = request.find("\r\n\r\n", pos);
+    pos += 4;
     _body = request.substr(pos, toInt(lenght));
-    std::cout << _body << std::endl;
+    std::cout << _body << " body" << std::endl;
 }
 
 void RequestManagement::setBool(std::string &request)
