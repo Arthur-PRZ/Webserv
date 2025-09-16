@@ -25,6 +25,7 @@ class SendManagement {
 		void OK();
 		void errorNotFound();
 		void execPythonScript();
+		
 };
 
 #endif

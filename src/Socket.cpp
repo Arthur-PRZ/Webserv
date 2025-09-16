@@ -20,14 +20,19 @@ int Socket::getFd() const {
 }
 
 void Socket::bind(int port) {
-	sockaddr_in addr;
-	std::memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	addr.sin_port = htons(port);
-	if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
-		throw std::runtime_error("bind failed");
+    int opt = 1;
+    if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        throw std::runtime_error("setsockopt failed");
+
+    sockaddr_in addr;
+    std::memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port);
+    if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+        throw std::runtime_error("bind failed");
 }
+
 
 void Socket::listen() {
 	::listen(_fd, SOMAXCONN);

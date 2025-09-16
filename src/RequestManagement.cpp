@@ -62,7 +62,7 @@ void RequestManagement::parser(std::string &request)
             if (word == "/")
                 _path = (_server.getRoot() + "/index.html").c_str();
             else
-                _path = (_server.getRoot() + "/" + word).c_str();
+                _path = (_server.getRoot() + word).c_str();
 
         }
         else if ( i == 2 )

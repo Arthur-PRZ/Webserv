@@ -1,11 +1,15 @@
 #include "SendManagement.hpp"
 #include <cstddef>
+#include <cstdlib>
+#include <ostream>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sstream>
 #include <fstream>
+#include <stdlib.h>
+#include <sys/wait.h>
 
 SendManagement::SendManagement() : _response(""), _request() , _server(){}
 
@@ -26,10 +30,17 @@ void SendManagement::sendResponse(int client_fd) {
 }
 
 void SendManagement::checkRequest() {
-	if (_request.getPageFound())
-		OK();
-	else
-		errorNotFound();
+	if (_request.getMethod() == "GET") {
+		if (_request.getPageFound())
+			OK();
+		else
+			errorNotFound();
+	}
+	else if (_request.getMethod() == "POST" && _request.getPath() != "./www/upload") {
+		std::cout << _request.getPath() << std::endl;
+		std::cout << _request.getBody() << std::endl;
+		execPythonScript();
+	}
 }
 
 void SendManagement::OK() {
@@ -61,4 +72,58 @@ void SendManagement::errorNotFound() {
 	_response += "HTTP/1.1 404 NotFound\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
 
-void SendManagement::execPythonScript() {}
+void SendManagement::execPythonScript() {
+	std::ostringstream oss;
+	oss << _request.getBody().size();
+	std::string contentLength = oss.str();
+	std::string method = "REQUEST_METHOD=" + _request.getMethod();
+	std::string length = "CONTENT_LENGTH=" + contentLength;
+	std::string type = "CONTENT_TYPE=application/x-www-form-urlencoded";
+	std::string script = "SCRIPT_FILENAME=./cgi-bin/hello.py";
+
+	char *envp[] = {
+		(char *)method.c_str(),
+		(char *)length.c_str(),
+		(char *)type.c_str(),
+		(char *)script.c_str(),
+		NULL
+	};
+
+	int pipeIn[2];
+	int pipeOut[2];
+	pipe(pipeIn);
+	pipe(pipeOut);
+	char *argv[] = {
+		(char *)"python3",
+		(char *)"./cgi-bin/hello.py",
+		NULL
+	};
+
+	pid_t pid = fork();
+	if (pid == -1)
+		throw std::runtime_error("fork failed");
+	if (pid == 0) {
+		close(pipeIn[1]);
+		close(pipeOut[0]);
+		dup2(pipeIn[0], STDIN_FILENO);
+		dup2(pipeOut[1], STDOUT_FILENO);
+		execve("/usr/bin/python3", argv, envp);
+		kill(getpid(), SIGKILL);
+	}
+	else if (pid > 0) {
+		close(pipeIn[0]);
+		close(pipeOut[1]);
+		if (!_request.getBody().empty())
+			write(pipeIn[1], _request.getBody().c_str(), _request.getBody().size());
+		close(pipeIn[1]);
+		std::string cgiOutput;
+		char buffer[1024];
+		ssize_t bytesRead;
+		while ((bytesRead = read(pipeOut[0], buffer, sizeof(buffer))) > 0)
+			cgiOutput.append(buffer, bytesRead);
+		close(pipeOut[0]);
+		int status;
+		waitpid(pid, &status, 0);
+		_response += cgiOutput;
+	}
+}
