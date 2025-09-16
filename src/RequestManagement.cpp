@@ -70,6 +70,7 @@ void RequestManagement::parser(std::string &request)
         i++;
     }
     setBool(request);
+    setExtensionType();
 }
 
 bool RequestManagement::checkPath()
@@ -122,6 +123,26 @@ void RequestManagement::setBool(std::string &request)
         _goodVer = true;
     else
         _goodVer = false;
+}
+
+void RequestManagement::setExtensionType()
+{
+    std::string line;
+    size_t pos = 1;
+
+    pos = _path.find('.', pos);
+    std::cout << _path << " PATH" << std::endl;
+    std::cout << pos << " POS" << std::endl;
+    if (pos != std::string::npos)
+    {
+        pos++;
+        _extensionType = _path.substr(pos, _path.find('\0') - pos);
+        std::cout << _extensionType << " MOI" << std::endl;
+
+    }
+    else
+        _extensionType = "";
+
 }
 
 std::string RequestManagement::getMethod()
