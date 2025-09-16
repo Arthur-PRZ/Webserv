@@ -14,6 +14,7 @@ class RequestManagement
     std::string _path;
     std::string _httpVer;
     std::string _body;
+    std::string _extensionType;
     bool _methodFound;
     bool _pageFound;
     bool _goodVer;
@@ -30,6 +31,7 @@ class RequestManagement
     void parser(std::string &request);
     void setBool(std::string &request);
     void setBody(std::string &request);
+    void setExtensionType();
     bool checkPath();
 
     static int toInt(std::string &str);
