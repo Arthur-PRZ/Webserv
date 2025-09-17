@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <iostream>
 
 Server::Server()
 	: _host(""),

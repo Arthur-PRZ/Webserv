@@ -40,8 +40,8 @@ void setLocation(std::ifstream &file, Server &server)
             else
                 newLocation.setAutoIndex(true);
         }
-    server.addLocation(newLocation);
     }
+    server.addLocation(newLocation);
 }
 
 void parserConfig(std::ifstream &file, Server &server)
@@ -73,10 +73,10 @@ void parserConfig(std::ifstream &file, Server &server)
                 value.erase(value.size() - 1);
                 (server.*(curr->second))(value);
             } 
-            if (line.find("location") != std::string::npos)
-            {
-                setLocation(file, server);
-            }
+        }
+        if (line.find("location") != std::string::npos)
+        {
+            setLocation(file, server);
         }
     }
 }
