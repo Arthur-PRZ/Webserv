@@ -82,7 +82,7 @@ bool RequestManagement::checkPath()
     return stat(_path.c_str(), &sb) == 0;
 }
 
-void RequestManagement::setBody(std::string &request)
+void RequestManagement::setBody(std::string &request) 
 {
     size_t pos = 0;
     size_t posBefore;
@@ -131,14 +131,10 @@ void RequestManagement::setExtensionType()
     size_t pos = 1;
 
     pos = _path.find('.', pos);
-    std::cout << _path << " PATH" << std::endl;
-    std::cout << pos << " POS" << std::endl;
     if (pos != std::string::npos)
     {
         pos++;
         _extensionType = _path.substr(pos, _path.find('\0') - pos);
-        std::cout << _extensionType << " MOI" << std::endl;
-
     }
     else
         _extensionType = "";
