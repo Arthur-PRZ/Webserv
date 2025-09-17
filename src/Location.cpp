@@ -7,7 +7,8 @@ Location::Location()
 	  _cgiExtensions(""),
 	  _uploadsPath(""),
 	  _redirect(""),
-	  _autoindex(false) {}
+	  _autoindex(false)
+	   {}
 
 Location::~Location() {}
 
