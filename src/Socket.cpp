@@ -1,5 +1,6 @@
 #include "Socket.hpp"
 #include <sys/socket.h>
+#include <stdio.h>
 
 Socket::Socket() 
 	: _fd(-1), _clientNbr(0){}
@@ -31,14 +32,29 @@ int Socket::getFd() const {
 	return _fd;
 }
 
+pollfd* Socket::getClients()
+{
+	return _clients;
+}
+
+int& Socket::getClientNbr()
+{
+	return _clientNbr;
+}
+
+
 void Socket::bind(int port) {
-	sockaddr_in addr;
-	std::memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	addr.sin_port = htons(port);
-	if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
-		throw std::runtime_error("bind failed");
+    int opt = 1;
+    if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        throw std::runtime_error("setsockopt failed");
+
+    sockaddr_in addr;
+    std::memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port);
+    if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+        throw std::runtime_error("bind failed");
 }
 
 void Socket::listen() {
@@ -48,6 +64,11 @@ void Socket::listen() {
 int Socket::accept() {
 	int client_fd = ::accept(_fd, NULL, NULL);
 	if (client_fd >= 0)
+	{
 		fcntl(client_fd, F_SETFL, O_NONBLOCK);
+		_clients[_clientNbr].fd = client_fd;
+		_clients[_clientNbr].events = POLLIN;
+		_clientNbr++;
+	}
 	return client_fd;
 }

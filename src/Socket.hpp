@@ -32,6 +32,10 @@ class Socket {
 		void bind(int port);
 		void listen();
 		int accept();
+
+		pollfd* getClients();
+		int& getClientNbr();
+
 };
 
 #endif
