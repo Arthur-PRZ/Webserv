@@ -13,10 +13,13 @@
 #include <sys/stat.h>
 #include <stdexcept>
 #include <unistd.h>
+#include <poll.h>
 
 class Socket {
 	private:
 		int _fd;
+		int _clientNbr;
+		struct pollfd _clients[100];
 
 	public:
 		Socket();
