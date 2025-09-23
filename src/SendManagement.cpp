@@ -37,8 +37,6 @@ void SendManagement::checkRequest() {
 			errorNotFound();
 	}
 	else if (_request.getMethod() == "POST" && _request.getPath() != "./www/upload") {
-		std::cout << _request.getPath() << std::endl;
-		std::cout << _request.getBody() << std::endl;
 		execPythonScript();
 	}
 }

@@ -3,13 +3,14 @@
 #include <dirent.h>
 #include <string>
 #include <sys/stat.h>
+#include <sys/socket.h>
 
 RequestManagement::RequestManagement()
-    : _method(""), _path(""), _httpVer(""), _body(""),
+    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _server() {}
 
 RequestManagement::RequestManagement(Server server)
-    : _method(""), _path(""), _httpVer(""), _body(""),
+    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _server(server) {}
 
 RequestManagement::~RequestManagement() {}
@@ -38,6 +39,15 @@ RequestManagement::RequestManagement(const RequestManagement &other)
 {
 }
 
+unsigned long RequestManagement::toUnsignedLong(std::string &str)
+{
+    std::istringstream iss(str);
+    unsigned long val = 0;
+
+    iss >> val;
+    return val;
+}
+
 int RequestManagement::toInt(std::string &str)
 {
     std::istringstream iss(str);
@@ -47,7 +57,7 @@ int RequestManagement::toInt(std::string &str)
     return val;
 }
 
-void RequestManagement::parser(std::string &request)
+void RequestManagement::parser(std::string &request, int &client_fd)
 {
     std::string word;
     std::istringstream iss(request);
@@ -55,7 +65,7 @@ void RequestManagement::parser(std::string &request)
 
     while (iss >> word && i < 3)
     {
-        if ( i == 0 )
+        if ( i == 0 ) 
             _method = word;
         else if ( i == 1 )
         {
@@ -69,10 +79,35 @@ void RequestManagement::parser(std::string &request)
             _httpVer = word;
         i++;
     }
-    setBool(request);
+    setBool(request, client_fd);
     setExtensionType();
+	setContentType(request);
 }
 
+void RequestManagement::setContentType(std::string &request) {
+    size_t pos = 0;
+    size_t posBefore;
+    size_t wordSize = 0;
+
+    pos = request.find("Content-Type:");
+    pos = request.find(' ', pos);
+    pos++;
+    posBefore = pos;
+
+    wordSize = request.find(";", pos) - posBefore;
+    _contentType = request.substr(posBefore, wordSize);
+    pos = request.find("boundary");
+    pos = request.find('=', pos);
+    pos++;
+    posBefore = pos;
+    wordSize = request.find("\r\n", pos) - posBefore;
+    std::string boundary = request.substr(posBefore, wordSize);
+	std::cout << "Body: " << _body << std::endl;
+	if (_contentType == "multipart/form-data") {
+		Image img;
+		img.parseImage(boundary, _body);
+	}
+}
 bool RequestManagement::checkPath()
 {
     if (!_path.empty() && _path[0] == '/')
@@ -82,11 +117,12 @@ bool RequestManagement::checkPath()
     return stat(_path.c_str(), &sb) == 0;
 }
 
-void RequestManagement::setBody(std::string &request) 
+void RequestManagement::setBody(std::string &request, int &client_fd) 
 {
     size_t pos = 0;
     size_t posBefore;
     size_t wordSize = 0;
+	char buffer[1024];
 
     pos = request.find("Content-Length:");
     pos = request.find(' ', pos);
@@ -95,14 +131,20 @@ void RequestManagement::setBody(std::string &request)
     
     wordSize = request.find("\r\n", pos) - posBefore;
 
-    std::string lenght = request.substr(posBefore, wordSize);
+    std::string length = request.substr(posBefore, wordSize);
 
     pos = request.find("\r\n\r\n", pos);
     pos += 4;
-    _body = request.substr(pos, toInt(lenght));
+    _body = request.substr(pos, toInt(length));
+	while (_body.size() < toUnsignedLong(length)) {
+		int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+		if (bytes_received <= 0)
+			break;
+		_body.append(buffer, bytes_received);
+	}
 }
 
-void RequestManagement::setBool(std::string &request)
+void RequestManagement::setBool(std::string &request, int &client_fd)
 {
     if (_method.find("GET") != std::string::npos
         || _method.find("POST") != std::string::npos
@@ -110,7 +152,7 @@ void RequestManagement::setBool(std::string &request)
     {
         _methodFound = true;
         if (_method.find("POST") != std::string::npos)
-            setBody(request);
+            setBody(request, client_fd);
     }
 
     else

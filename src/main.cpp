@@ -43,7 +43,7 @@ int main() {
 
 			parserConfig(configFile, serverInfo);
 			RequestManagement requestManagement(serverInfo);
-			requestManagement.parser(request);
+			requestManagement.parser(request, client_fd);
 			SendManagement sendManagement(requestManagement, serverInfo);
 			sendManagement.checkRequest();
 			std::string filePath = requestManagement.getPath();
