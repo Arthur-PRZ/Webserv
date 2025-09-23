@@ -20,6 +20,7 @@ class RequestManagement
 	    bool _pageFound;
 	    bool _goodVer;
 		Server _server;
+		Image _image;
 
     public :
 		RequestManagement();
@@ -38,11 +39,13 @@ class RequestManagement
 	    static int toInt(std::string &str);
 		static unsigned long toUnsignedLong(std::string &str);
 
-	    std::string getMethod();
-	    std::string getPath();
-	    std::string getHttpVer();
-	    std::string getBody();
-	    bool getMethodFound();
+	    std::string &getMethod();
+	    std::string &getPath();
+	    std::string &getHttpVer();
+	    std::string &getBody();
+		Image getImage();
+		std::string &getExtensionType();
+		bool getMethodFound();
 	    bool getPageFound();
 	    bool getGoodVer();
 };

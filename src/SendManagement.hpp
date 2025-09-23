@@ -21,7 +21,7 @@ class SendManagement {
 		void sendResponse(int client_fd);
 		const std::string &getResponse() const;
 		int &getResponseSize();
-		void checkRequest();
+		void checkRequest(std::string &extensionType);
 		void OK();
 		void errorNotFound();
 		void execPythonScript();

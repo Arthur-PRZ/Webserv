@@ -29,31 +29,61 @@ void SendManagement::sendResponse(int client_fd) {
 	}
 }
 
-void SendManagement::checkRequest() {
+void SendManagement::checkRequest(std::string &extensionType) {
 	if (_request.getMethod() == "GET") {
-		if (_request.getPageFound())
+		if (_request.getPageFound() || extensionType == "png")
 			OK();
 		else
 			errorNotFound();
 	}
-	else if (_request.getMethod() == "POST" && _request.getPath() != "./www/upload") {
-		execPythonScript();
+	else if (_request.getMethod() == "POST") {
+		if (_request.getPath() != "./www/upload")
+			execPythonScript();
+		else
+		{
+			std::string path = "./www/uploads/" + _request.getImage().getFilename();
+			std::ofstream out(path.c_str(), std::ios::binary);
+			if (out) {
+			    out.write(_request.getImage().getContent().c_str(), _request.getImage().getContent().size());
+			    out.close();
+			}
+			_response = "HTTP/1.1 302 Found\r\nLocation: /\r\nContent-Length: 0\r\n\r\n";
+		}
 	}
 }
 
 void SendManagement::OK() {
-	std::string filePath = _request.getPath();
-	std::ifstream file(filePath.c_str(), std::ios::binary);
 	std::string content;
-	if (file) {
-        content.assign((std::istreambuf_iterator<char>(file)),
-	                       std::istreambuf_iterator<char>());
+	std::string type;
+	if (_request.getPageFound())
+	{
+		std::string filePath = _request.getPath();
+		std::ifstream file(filePath.c_str(), std::ios::binary);
+		if (file) {
+	        content.assign((std::istreambuf_iterator<char>(file)),
+		                       std::istreambuf_iterator<char>());
+		}
+		else
+			errorNotFound();
+		type = "text/html";
 	}
-
+	else
+	{
+		std::string filePath = _request.getPath();
+		std::ifstream file(filePath.c_str(), std::ios::binary);
+		if (file) {
+	        content.assign((std::istreambuf_iterator<char>(file)),
+		                       std::istreambuf_iterator<char>());
+		}
+		else
+			errorNotFound();
+		type = "image/png";
+	}
 	std::stringstream ss;
     ss << content.size();
     std::string content_length = ss.str();
-	_response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
+	content += _request.getImage().getContent();
+	_response = "HTTP/1.1 200 OK\r\nContent-Type: " + type + "\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
 
 void SendManagement::errorNotFound() {

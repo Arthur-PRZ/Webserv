@@ -17,7 +17,6 @@
 #include "Server.hpp"
 #include "Parser.hpp"
 
-//Penser a gerer plusieurs clients en utilisant poll()
 int main() {
 	try {
 		Socket server(AF_INET, SOCK_STREAM, 0);
@@ -29,9 +28,7 @@ int main() {
 		    int client_fd = server.accept();
 			pollfd *clients = server.getClients();
 			std::string request;
-
 			int ret = poll(clients, server.getClientNbr(), -1);
-
 			if (ret > 0)
 			{
 				for (int i = 0; i < server.getClientNbr(); i++)
@@ -42,8 +39,6 @@ int main() {
 						char buffer[1024];
 						while (true) {
 							int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-							std::cout << bytes_received << std::endl;
-
 							if (bytes_received <= 0)
 								break;
 							buffer[bytes_received] = '\0';
@@ -52,27 +47,14 @@ int main() {
 								break;
 						}
 					}
-				}				
+				}
 		    }
 		    std::cout << request << std::endl;
-
 			parserConfig(configFile, serverInfo);
 			RequestManagement requestManagement(serverInfo);
 			requestManagement.parser(request, client_fd);
 			SendManagement sendManagement(requestManagement, serverInfo);
-			sendManagement.checkRequest();
-			std::string filePath = requestManagement.getPath();
-		    std::ifstream file(filePath.c_str(), std::ios::binary);
-		    std::string content;
-		    if (file) {
-		        content.assign((std::istreambuf_iterator<char>(file)),
-		                       std::istreambuf_iterator<char>());
-		    }
-
-		    std::stringstream ss;
-		    ss << content.size();
-		    std::string content_length = ss.str();
-
+			sendManagement.checkRequest(requestManagement.getExtensionType());
 			sendManagement.sendResponse(client_fd);
 		    close(client_fd);
 		}

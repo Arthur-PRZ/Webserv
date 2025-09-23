@@ -17,6 +17,8 @@ class Image {
 		void parseImage(std::string &boundary, std::string &body);
 		void setFileName(std::string &boundary, std::string &body);
 		void setFileContent(std::string &boundary, std::string &body);
+		std::string &getContent();
+		std::string &getFilename();
 };
 
 #endif

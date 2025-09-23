@@ -7,11 +7,11 @@
 
 RequestManagement::RequestManagement()
     : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
-      _methodFound(false), _pageFound(false), _goodVer(false), _server() {}
+      _methodFound(false), _pageFound(false), _goodVer(false), _server(), _image() {}
 
 RequestManagement::RequestManagement(Server server)
     : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
-      _methodFound(false), _pageFound(false), _goodVer(false), _server(server) {}
+      _methodFound(false), _pageFound(false), _goodVer(false), _server(server), _image() {}
 
 RequestManagement::~RequestManagement() {}
 
@@ -26,6 +26,8 @@ RequestManagement &RequestManagement::operator=(const RequestManagement &other)
         _methodFound = other._methodFound;
         _pageFound = other._pageFound;
         _goodVer = other._goodVer;
+		_server = other._server;
+		_image = other._image;
     }
     return *this;
 }
@@ -35,7 +37,9 @@ RequestManagement::RequestManagement(const RequestManagement &other)
           _httpVer(other._httpVer), _body(other._body),
           _methodFound(other._methodFound),
           _pageFound(other._pageFound),
-          _goodVer(other._goodVer)
+          _goodVer(other._goodVer),
+		  _server(other._server),
+		  _image(other._image)
 {
 }
 
@@ -102,11 +106,10 @@ void RequestManagement::setContentType(std::string &request) {
     posBefore = pos;
     wordSize = request.find("\r\n", pos) - posBefore;
     std::string boundary = request.substr(posBefore, wordSize);
-	std::cout << "Body: " << _body << std::endl;
 	if (_contentType == "multipart/form-data") {
-		Image img;
-		img.parseImage(boundary, _body);
+		_image.parseImage(boundary, _body);
 	}
+
 }
 bool RequestManagement::checkPath()
 {
@@ -182,22 +185,26 @@ void RequestManagement::setExtensionType()
         _extensionType = "";
 
 }
+std::string &RequestManagement::getExtensionType()
+{
+    return _extensionType;
+}
 
-std::string RequestManagement::getMethod()
+std::string &RequestManagement::getMethod()
 {
     return _method;
 }
-std::string RequestManagement::getPath()
+std::string &RequestManagement::getPath()
 {
     return _path;
 }
 
-std::string RequestManagement::getHttpVer()
+std::string &RequestManagement::getHttpVer()
 {
     return _httpVer;
 }
 
-std::string RequestManagement::getBody()
+std::string &RequestManagement::getBody()
 {
     return _body;
 }
@@ -215,4 +222,8 @@ bool RequestManagement::getPageFound()
 bool RequestManagement::getGoodVer()
 {
     return _goodVer;
+}
+
+Image RequestManagement::getImage() {
+	return _image;
 }
