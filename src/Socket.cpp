@@ -63,6 +63,7 @@ void Socket::listen() {
 
 int Socket::accept() {
 	int client_fd = ::accept(_fd, NULL, NULL);
+	printf("accept returned fd=%d\n", client_fd);
 	if (client_fd >= 0)
 	{
 		fcntl(client_fd, F_SETFL, O_NONBLOCK);
