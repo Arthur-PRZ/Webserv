@@ -1,10 +1,23 @@
 #include "Socket.hpp"
 #include <sys/socket.h>
+#include <stdio.h>
 
 Socket::Socket() 
-	: _fd(-1) {}
+	: _fd(-1), _clientNbr(0){}
 
-Socket::Socket(int domain, int type, int protocol) {
+Socket &Socket::operator=(const Socket& other)
+{
+	if (this != &other)
+	{
+		_fd = other._fd;
+		_clientNbr = other._clientNbr;
+		for (int i = 0; i < _clientNbr; i++)
+			_clients[i] = other._clients[i];
+	}
+	return *this;
+}
+
+Socket::Socket(int domain, int type, int protocol) : _clientNbr(0) {
 	_fd = socket(domain, type, protocol);
 	if (_fd == -1)
 		throw std::runtime_error("socket failed");
@@ -18,6 +31,17 @@ Socket::~Socket() {
 int Socket::getFd() const {
 	return _fd;
 }
+
+pollfd* Socket::getClients()
+{
+	return _clients;
+}
+
+int& Socket::getClientNbr()
+{
+	return _clientNbr;
+}
+
 
 void Socket::bind(int port) {
     int opt = 1;
@@ -40,5 +64,12 @@ void Socket::listen() {
 
 int Socket::accept() {
 	int client_fd = ::accept(_fd, NULL, NULL);
+	if (client_fd >= 0)
+	{
+		fcntl(client_fd, F_SETFL, O_NONBLOCK);
+		_clients[_clientNbr].fd = client_fd;
+		_clients[_clientNbr].events = POLLIN;
+		_clientNbr++;
+	}
 	return client_fd;
 }

@@ -27,17 +27,32 @@ int main() {
 		std::ifstream configFile("config.conf", std::ios::binary);
 		while (true) {
 		    int client_fd = server.accept();
+			pollfd *clients = server.getClients();
+			std::string request;
 
-		    std::string request;
-		    char buffer[1024];
-		    while (true) {
-		        int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-		        if (bytes_received <= 0)
-					break;
-		        buffer[bytes_received] = '\0';
-		        request += buffer;
-		        if (request.find("\r\n\r\n") != std::string::npos)
-					break;
+			int ret = poll(clients, server.getClientNbr(), -1);
+
+			if (ret > 0)
+			{
+				for (int i = 0; i < server.getClientNbr(); i++)
+				{
+					
+					if (clients[i].revents & POLLIN)
+					{
+						char buffer[1024];
+						while (true) {
+							int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+							std::cout << bytes_received << std::endl;
+
+							if (bytes_received <= 0)
+								break;
+							buffer[bytes_received] = '\0';
+							request += buffer;
+							if (request.find("\r\n\r\n") != std::string::npos)
+								break;
+						}
+					}
+				}				
 		    }
 		    std::cout << request << std::endl;
 

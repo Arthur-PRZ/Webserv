@@ -13,10 +13,13 @@
 #include <sys/stat.h>
 #include <stdexcept>
 #include <unistd.h>
+#include <poll.h>
 
 class Socket {
 	private:
 		int _fd;
+		int _clientNbr;
+		struct pollfd _clients[100];
 
 	public:
 		Socket();
@@ -29,6 +32,10 @@ class Socket {
 		void bind(int port);
 		void listen();
 		int accept();
+
+		pollfd* getClients();
+		int& getClientNbr();
+
 };
 
 #endif
