@@ -17,13 +17,19 @@
 #include "Server.hpp"
 #include "Parser.hpp"
 
-int main() {
+//Penser a gerer plusieurs clients en utilisant poll()
+int main(int argc, char **argv) {
 	try {
+		(void)argc;
 		Socket server(AF_INET, SOCK_STREAM, 0);
 		Server serverInfo;
 		server.bind(8080);
 		server.listen();
-		std::ifstream configFile("config.conf", std::ios::binary);
+		std::ifstream configFile(argv[1], std::ios::binary);
+		if (configFile.fail())
+			configFile.open("config.conf", std::ios::binary);
+		if (configFile.fail())
+        	throw std::runtime_error("no config file found");
 		while (true) {
 		    int client_fd = server.accept();
 			pollfd *clients = server.getClients();
