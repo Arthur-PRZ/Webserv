@@ -31,8 +31,8 @@ int main(int argc, char **argv) {
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
 		while (true) {
-		    int client_fd = server.accept();
 			pollfd *clients = server.getClients();
+		    int client_fd = server.accept();
 			std::string request;
 			int ret = poll(clients, server.getClientNbr(), -1);
 			if (ret > 0)
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 					}
 				}
 		    }
-		    std::cout << request << std::endl;
+		    std::cout << request << "\n______________________________________" << std::endl;
 			parserConfig(configFile, serverInfo);
 			RequestManagement requestManagement(serverInfo);
 			requestManagement.parser(request, client_fd);

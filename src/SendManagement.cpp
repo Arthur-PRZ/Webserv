@@ -31,7 +31,8 @@ void SendManagement::sendResponse(int client_fd) {
 
 void SendManagement::checkRequest(std::string &extensionType) {
 	if (_request.getMethod() == "GET") {
-		if (_request.getPageFound() || extensionType == "png")
+		if (_request.getPageFound() || extensionType == "png" || extensionType == "jpg" 
+			|| extensionType == "jpeg" || extensionType == "xpm")
 			OK();
 		else
 			errorNotFound();
@@ -77,7 +78,7 @@ void SendManagement::OK() {
 		}
 		else
 			errorNotFound();
-		type = "image/png";
+		type = "image/" + _request.getExtensionType();
 	}
 	std::stringstream ss;
     ss << content.size();

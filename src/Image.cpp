@@ -47,17 +47,26 @@ void Image::setFileContent(std::string &boundary, std::string &body) {
 
 	pos = body.find(boundary);
 	if (pos == std::string::npos)
+	{
+		std::cout << "return1, boundary is : " << boundary << " body is : " << body << "\n\n" << std::endl;
 		return;
+	}
 	pos = body.find("\r\n\r\n", pos);
 	if (pos == std::string::npos)
+	{
+		// std::cout << "return2" << std::endl;
 		return;
+	}
 	pos += 4;
 	posBefore = pos;
 	contentPos = body.find(boundary, pos);
 	if (contentPos == std::string::npos)
+	{
+		// std::cout << "return3" << std::endl;
 		return;
+	}
 	_content = body.substr(posBefore, contentPos - pos - 2);
-	std::cout << "The content of the image is :" << _content << std::endl;
+	// std::cout << "The content of the image is :" << _content << std::endl;
 }
 
 std::string &Image::getContent() {

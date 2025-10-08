@@ -87,5 +87,5 @@ void Location::setAutoIndex( const bool autoindex) {
 
 void Location::aff()
 {
-	std::cout << _methods << std::endl;
+	// std::cout << _methods << std::endl;
 }

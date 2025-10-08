@@ -107,6 +107,7 @@ void RequestManagement::setContentType(std::string &request) {
     wordSize = request.find("\r\n", pos) - posBefore;
     std::string boundary = request.substr(posBefore, wordSize);
 	if (_contentType == "multipart/form-data") {
+		std::cout << "Body is " << _body << std::endl;
 		_image.parseImage(boundary, _body);
 	}
 
@@ -133,16 +134,26 @@ void RequestManagement::setBody(std::string &request, int &client_fd)
     posBefore = pos;
     
     wordSize = request.find("\r\n", pos) - posBefore;
-
+	// std::cout << wordSize << std::endl;
     std::string length = request.substr(posBefore, wordSize);
-
+	// std::cout << length << std::endl;
     pos = request.find("\r\n\r\n", pos);
     pos += 4;
-    _body = request.substr(pos, toInt(length));
+	// std::cout << request << std::endl;
+	if (pos < request.length()) {
+        _body = request.substr(pos);
+    } else {
+        _body = "";
+    }
+    // _body = request.substr(pos, toInt(length));
+
 	while (_body.size() < toUnsignedLong(length)) {
 		int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 		if (bytes_received <= 0)
+		{
+			// std::cout << "breaking : " << _body << std::endl;
 			break;
+		}
 		_body.append(buffer, bytes_received);
 	}
 }
