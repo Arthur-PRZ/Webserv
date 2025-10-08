@@ -6,6 +6,7 @@
 #include <fstream>
 #include "Server.hpp"
 #include "Image.hpp"
+#include <poll.h>
 
 class RequestManagement
 {
@@ -29,9 +30,9 @@ class RequestManagement
 	    RequestManagement(const RequestManagement &copy);
 	    RequestManagement &operator=(const RequestManagement &other);
 	    
-	    void parser(std::string &request, int &client_fd);
-	    void setBool(std::string &request, int &client_fd);
-	    void setBody(std::string &request, int &client_fd);
+	    void parser(std::string &request, pollfd &client_fd);
+	    void setBool(std::string &request, pollfd &client_fd);
+	    void setBody(std::string &request, pollfd &client_fd);
 	    void setExtensionType();
 	    void setContentType(std::string &request);
 	    bool checkPath();

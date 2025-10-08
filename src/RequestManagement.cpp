@@ -4,6 +4,8 @@
 #include <string>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <poll.h>
+#include <string.h>
 
 RequestManagement::RequestManagement()
     : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
@@ -61,7 +63,7 @@ int RequestManagement::toInt(std::string &str)
     return val;
 }
 
-void RequestManagement::parser(std::string &request, int &client_fd)
+void RequestManagement::parser(std::string &request, pollfd &client)
 {
     std::string word;
     std::istringstream iss(request);
@@ -83,7 +85,7 @@ void RequestManagement::parser(std::string &request, int &client_fd)
             _httpVer = word;
         i++;
     }
-    setBool(request, client_fd);
+    setBool(request, client);
     setExtensionType();
 	setContentType(request);
 }
@@ -106,10 +108,12 @@ void RequestManagement::setContentType(std::string &request) {
     posBefore = pos;
     wordSize = request.find("\r\n", pos) - posBefore;
     std::string boundary = request.substr(posBefore, wordSize);
+	// std::cout << "request: "<< request << "|" << std::endl;
+    // std::cout << "content type: " << _contentType << " |" << std::endl;
 	if (_contentType == "multipart/form-data") {
+        // std::cout << "in " << std::endl;
 		_image.parseImage(boundary, _body);
 	}
-
 }
 bool RequestManagement::checkPath()
 {
@@ -120,13 +124,14 @@ bool RequestManagement::checkPath()
     return stat(_path.c_str(), &sb) == 0;
 }
 
-void RequestManagement::setBody(std::string &request, int &client_fd) 
+void RequestManagement::setBody(std::string &request, pollfd &client) 
 {
     size_t pos = 0;
     size_t posBefore;
     size_t wordSize = 0;
-	char buffer[1024];
+	char buffer[4096];
 
+    std::cout << "request " << request << " |" << std::endl;
     pos = request.find("Content-Length:");
     pos = request.find(' ', pos);
     pos++;
@@ -138,16 +143,29 @@ void RequestManagement::setBody(std::string &request, int &client_fd)
 
     pos = request.find("\r\n\r\n", pos);
     pos += 4;
-    _body = request.substr(pos, toInt(length));
-	while (_body.size() < toUnsignedLong(length)) {
-		int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
-		if (bytes_received <= 0)
-			break;
-		_body.append(buffer, bytes_received);
-	}
+
+        while (_body.size() < toUnsignedLong(length) && client.revents & POLLIN) {
+            int bytes_received = recv(client.fd, buffer, sizeof(buffer), 0);
+            if (bytes_received == 0)
+            {
+                std::cout << "0" << std::endl;
+                break;
+            }
+            else { // bytes == -1
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    std::cout << "-1 reçu : buffer vide pour l'instant (comportement normal)\n";
+                } else {
+                    std::cout << "Erreur réelle : " << strerror(errno) << "\n";
+                }
+            std::cout << "SIU" << std::endl;
+            _body.append(buffer, bytes_received);
+            }
+        }
+    std::cout << "lenght " << length << " |" << std::endl;
+    std::cout << "body " << _body << " |" << std::endl;
 }
 
-void RequestManagement::setBool(std::string &request, int &client_fd)
+void RequestManagement::setBool(std::string &request, pollfd &client)
 {
     if (_method.find("GET") != std::string::npos
         || _method.find("POST") != std::string::npos
@@ -155,7 +173,7 @@ void RequestManagement::setBool(std::string &request, int &client_fd)
     {
         _methodFound = true;
         if (_method.find("POST") != std::string::npos)
-            setBody(request, client_fd);
+            setBody(request, client);
     }
 
     else

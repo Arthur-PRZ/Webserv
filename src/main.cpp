@@ -30,9 +30,10 @@ int main(int argc, char **argv) {
 			configFile.open("config.conf", std::ios::binary);
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
+		int client_fd = server.accept();	
 		while (true) {
-		    int client_fd = server.accept();
 			pollfd *clients = server.getClients();
+		    std::cout << server.getClientNbr() << std::endl;
 			std::string request;
 			int ret = poll(clients, server.getClientNbr(), -1);
 			if (ret > 0)
@@ -44,7 +45,7 @@ int main(int argc, char **argv) {
 					{
 						char buffer[1024];
 						while (true) {
-							int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+							int bytes_received = recv(clients[i].fd, buffer, sizeof(buffer) - 1, 0);
 							if (bytes_received <= 0)
 								break;
 							buffer[bytes_received] = '\0';
@@ -55,14 +56,14 @@ int main(int argc, char **argv) {
 					}
 				}
 		    }
-		    std::cout << request << std::endl;
+		    // std::cout << request << std::endl;
 			parserConfig(configFile, serverInfo);
 			RequestManagement requestManagement(serverInfo);
-			requestManagement.parser(request, client_fd);
+			requestManagement.parser(request, clients[0]);
 			SendManagement sendManagement(requestManagement, serverInfo);
 			sendManagement.checkRequest(requestManagement.getExtensionType());
 			sendManagement.sendResponse(client_fd);
-		    close(client_fd);
+		    // close(client_fd);
 		}
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
