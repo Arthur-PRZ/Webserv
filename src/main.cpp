@@ -25,46 +25,77 @@ int main(int argc, char **argv) {
 		Server serverInfo;
 		server.bind(8080);
 		server.listen();
+
 		std::ifstream configFile(argv[1], std::ios::binary);
 		if (configFile.fail())
 			configFile.open("config.conf", std::ios::binary);
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
-		int client_fd = server.accept();	
+		parserConfig(configFile, serverInfo);
+	
 		while (true) {
 			pollfd *clients = server.getClients();
-		    std::cout << server.getClientNbr() << std::endl;
+			std::string requests[10];
+
+			// pollfd *clients = server.getClients();
+		    // std::cout << server.getClientNbr() << std::endl;
+			// std::string request;
+			// int ret = poll(clients, server.getClientNbr(), -1);
+			// if (ret > 0)
+			// {
+			// 	for (int i = 0; i < server.getClientNbr(); i++)
+			// 	{
+					
+			// 		if (clients[i].revents & POLLIN)
+			// 		{
+			// 			char buffer[1024];
+			// 			while (true) {
+			// 				int bytes_received = recv(clients[i].fd, buffer, sizeof(buffer) - 1, 0);
+			// 				if (bytes_received <= 0)
+			// 					break;
+			// 				buffer[bytes_received] = '\0';
+			// 				request += buffer;
+			// 				if (request.find("\r\n\r\n") != std::string::npos)
+			// 					break;
+			// 			}
+			// 		}
+			// 	}
+		    // }
+
+
+		    // std::cout << server.getClientNbr() << std::endl;
+
 			std::string request;
 			int ret = poll(clients, server.getClientNbr(), -1);
-			if (ret > 0)
+			if (ret < 0)
+				throw("poll error");
+			for (int i = 0; i < server.getClientNbr(); i++)
 			{
-				for (int i = 0; i < server.getClientNbr(); i++)
+				if (clients[i].fd == server.getFd() && clients[i].revents & POLLIN)
+					server.accept();
+				else if (clients[i].revents & POLLIN)
 				{
-					
-					if (clients[i].revents & POLLIN)
-					{
-						char buffer[1024];
-						while (true) {
-							int bytes_received = recv(clients[i].fd, buffer, sizeof(buffer) - 1, 0);
-							if (bytes_received <= 0)
-								break;
-							buffer[bytes_received] = '\0';
-							request += buffer;
-							if (request.find("\r\n\r\n") != std::string::npos)
-								break;
-						}
+					char buffer[1024];
+					while (true) {
+						//Client 5 -> Partie du body RECEIVING_BODY -> 200 octets, Client 12 GET index.html, Client 5 -> RECEIVING_BODY 200, Client 5 -> PROCESS_REQUEST, Client 5 -> SENDING_RESPONSE
+						int bytes_received = recv(clients[i].fd, buffer, sizeof(buffer) - 1, 0);
+						if (bytes_received <= 0)
+							break;
+						buffer[bytes_received] = '\0';
+						requests[i] += buffer;
+						if (requests[i].find("\r\n\r\n") != std::string::npos)
+							break;
 					}
+					RequestManagement requestManagement(serverInfo);
+					requestManagement.parser(requests[i] , clients[i]);
+					SendManagement sendManagement(requestManagement, serverInfo);
+					sendManagement.checkRequest(requestManagement.getExtensionType());
+					sendManagement.sendResponse(clients[i].fd);
 				}
-		    }
+			}
+			}
 		    // std::cout << request << std::endl;
-			parserConfig(configFile, serverInfo);
-			RequestManagement requestManagement(serverInfo);
-			requestManagement.parser(request, clients[0]);
-			SendManagement sendManagement(requestManagement, serverInfo);
-			sendManagement.checkRequest(requestManagement.getExtensionType());
-			sendManagement.sendResponse(client_fd);
 		    // close(client_fd);
-		}
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}
