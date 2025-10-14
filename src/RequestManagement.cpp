@@ -126,43 +126,57 @@ bool RequestManagement::checkPath()
 
 void RequestManagement::setBody(std::string &request, pollfd &client) 
 {
-    size_t pos = 0;
-    size_t posBefore;
-    size_t wordSize = 0;
-	char buffer[4096];
-
-    std::cout << "request " << request << " |" << std::endl;
-    pos = request.find("Content-Length:");
-    pos = request.find(' ', pos);
-    pos++;
-    posBefore = pos;
+    size_t pos = request.find("Content-Length:");
+    if (pos == std::string::npos) {
+        return;
+    }
     
-    wordSize = request.find("\r\n", pos) - posBefore;
+    pos = request.find(' ', pos);
+    if (pos == std::string::npos) return;
+    pos++;
+    
+    size_t endPos = request.find("\r\n", pos);
+    if (endPos == std::string::npos) return;
+    
+    std::string lengthStr = request.substr(pos, endPos - pos);
+    size_t contentLength = toUnsignedLong(lengthStr);
+    
+    size_t bodyStart = request.find("\r\n\r\n");
+    if (bodyStart == std::string::npos) return;
+    bodyStart += 4;
+    
+    if (bodyStart < request.size()) {
+        _body = request.substr(bodyStart);
+		std::cout << "Body deja recu: " << _body.size() << " bytes" << std::endl;
+    }
 
-    std::string length = request.substr(posBefore, wordSize);
+    if (_body.size() >= contentLength) {
+        std::cout << "Body complet déjà dans request" << std::endl;
+        _body = _body.substr(0, contentLength);
+        return;
+    }
+    std::cout << "Il manque " << (contentLength - _body.size()) << " bytes" << std::endl;
+	char buffer[4096];
+    while (_body.size() < contentLength) {
+        size_t remaining = contentLength - _body.size();
+        size_t toRead = std::min(remaining, sizeof(buffer));
+        
+        int bytes = recv(client.fd, buffer, toRead, 0);
+        
+	    std::cout << "recv() a retourné: " << bytes << std::endl;
 
-    pos = request.find("\r\n\r\n", pos);
-    pos += 4;
-
-        while (_body.size() < toUnsignedLong(length) && client.revents & POLLIN) {
-            int bytes_received = recv(client.fd, buffer, sizeof(buffer), 0);
-            if (bytes_received == 0)
-            {
-                std::cout << "0" << std::endl;
-                break;
-            }
-            else { // bytes == -1
-                if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    std::cout << "-1 reçu : buffer vide pour l'instant (comportement normal)\n";
-                } else {
-                    std::cout << "Erreur réelle : " << strerror(errno) << "\n";
-                }
-            std::cout << "SIU" << std::endl;
-            _body.append(buffer, bytes_received);
-            }
+        if (bytes < 0) {
+            std::cout << "Erreur socket: " << errno << std::endl;
+            break;
+        } else if (bytes == 0) {
+            std::cout << "Connexion fermée par le client" << std::endl;
+            break;
         }
-    std::cout << "lenght " << length << " |" << std::endl;
-    std::cout << "body " << _body << " |" << std::endl;
+        
+        _body.append(buffer, bytes);
+        std::cout << "Body size maintenant: " << _body.size() << std::endl;
+	}
+	std::cout << "Body final size: " << _body.size() << " (attendu: " << contentLength << ")" << std::endl;
 }
 
 void RequestManagement::setBool(std::string &request, pollfd &client)

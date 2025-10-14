@@ -16,6 +16,7 @@
 #include "SendManagement.hpp"
 #include "Server.hpp"
 #include "Parser.hpp"
+#include "Client.hpp"
 
 //Penser a gerer plusieurs clients en utilisant poll()
 int main(int argc, char **argv) {
@@ -30,7 +31,7 @@ int main(int argc, char **argv) {
 			configFile.open("config.conf", std::ios::binary);
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
-		int client_fd = server.accept();	
+		int client_fd = server.accept();
 		while (true) {
 			pollfd *clients = server.getClients();
 		    std::cout << server.getClientNbr() << std::endl;

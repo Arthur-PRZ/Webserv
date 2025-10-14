@@ -30,9 +30,9 @@ class RequestManagement
 	    RequestManagement(const RequestManagement &copy);
 	    RequestManagement &operator=(const RequestManagement &other);
 	    
-	    void parser(std::string &request, pollfd &client_fd);
-	    void setBool(std::string &request, pollfd &client_fd);
-	    void setBody(std::string &request, pollfd &client_fd);
+	    void parser(std::string &request, pollfd &client);
+	    void setBool(std::string &request, pollfd &client);
+	    void setBody(std::string &request, pollfd &client);
 	    void setExtensionType();
 	    void setContentType(std::string &request);
 	    bool checkPath();
