@@ -156,8 +156,8 @@ void RequestManagement::setBody(std::string &request, pollfd &client)
         return;
     }
     std::cout << "Il manque " << (contentLength - _body.size()) << " bytes" << std::endl;
-	char buffer[4096];
-    while (_body.size() < contentLength) {
+	char buffer[4096]; 
+ 	while (_body.size() < contentLength) {
         size_t remaining = contentLength - _body.size();
         size_t toRead = std::min(remaining, sizeof(buffer));
         

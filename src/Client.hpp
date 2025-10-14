@@ -4,7 +4,6 @@
 #include <string>
 
 enum ClientState {
-	NONE,
 	READING_HEADER,
 	READING_BODY,
 	PROCESS_REQUEST,
@@ -13,18 +12,33 @@ enum ClientState {
 
 class Client {
 	private:
-		ClientState state;
-		int fd;
-		int expectedBodySize;
-		std::string request;
-		std::string header;
-		std::string body;
+		ClientState _state;
+		int _fd;
+		int _expectedBodySize;
+		std::string _request;
+		std::string _header;
+		std::string _body;
 
 	public:
+		Client();
 		Client(int socket);
 		~Client();
 		Client(const Client& other);
 		Client &operator=(const Client& other);
+
+		void setRequest( char *buffer );
+		void setState( ClientState state );
+		void setFd( int fd );
+		void setExpectedBodySize( int bodySize );
+		void setHeader( std::string &header );
+		void setBody( std::string &body );
+
+		std::string &getRequest();
+		ClientState &getState();
+		int &getFd();
+		int &getExpectedBodySize();
+		std::string &getHeader();
+		std::string &getBody();
 };
 
 #endif

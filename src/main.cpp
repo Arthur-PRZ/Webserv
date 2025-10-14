@@ -18,7 +18,7 @@
 #include "Parser.hpp"
 #include "Client.hpp"
 
-//Penser a gerer plusieurs clients en utilisant poll()
+//Penser a gerer plusieurs pollclients en utilisant poll()
 int main(int argc, char **argv) {
 	try {
 		(void)argc;
@@ -35,63 +35,36 @@ int main(int argc, char **argv) {
 		server.accept();
 		parserConfig(configFile, serverInfo);
 		while (true) {
-			pollfd *clients = server.getClients();
-			std::string requests[10];
-
-			// pollfd *clients = server.getClients();
-		    // std::cout << server.getClientNbr() << std::endl;
-			// std::string request;
-			// int ret = poll(clients, server.getClientNbr(), -1);
-			// if (ret > 0)
-			// {
-			// 	for (int i = 0; i < server.getClientNbr(); i++)
-			// 	{
-					
-			// 		if (clients[i].revents & POLLIN)
-			// 		{
-			// 			char buffer[1024];
-			// 			while (true) {
-			// 				int bytes_received = recv(clients[i].fd, buffer, sizeof(buffer) - 1, 0);
-			// 				if (bytes_received <= 0)
-			// 					break;
-			// 				buffer[bytes_received] = '\0';
-			// 				request += buffer;
-			// 				if (request.find("\r\n\r\n") != std::string::npos)
-			// 					break;
-			// 			}
-			// 		}
-			// 	}
-		    // }
-
-
-		    // std::cout << server.getClientNbr() << std::endl;
-
-			std::string request;
-			int ret = poll(clients, server.getClientNbr(), -1);
+			Client client;
+			pollfd *pollclients = server.getClients();
+			int ret = poll(pollclients, server.getClientNbr(), -1);
 			if (ret < 0)
 				throw("poll error");
 			for (int i = 0; i < server.getClientNbr(); i++)
 			{
-				if (clients[i].fd == server.getFd() && clients[i].revents & POLLIN)
-					server.accept();
-				else if (clients[i].revents & POLLIN)
+				if (pollclients[i].fd == server.getFd() && pollclients[i].revents & POLLIN)
+				{
+					int new_fd = server.accept();
+					client = serverInfo.addClient(new_fd);
+				}
+				else if (pollclients[i].revents & POLLIN)
 				{
 					char buffer[1024];
-					while (true) {
-						//Client 5 -> Partie du body RECEIVING_BODY -> 200 octets, Client 12 GET index.html, Client 5 -> RECEIVING_BODY 200, Client 5 -> PROCESS_REQUEST, Client 5 -> SENDING_RESPONSE
-						int bytes_received = recv(clients[i].fd, buffer, sizeof(buffer) - 1, 0);
+					if (client.getState() == READING_HEADER)
+					{
+						int bytes_received = recv(pollclients[i].fd, buffer, sizeof(buffer) - 1, 0);
 						if (bytes_received <= 0)
 							break;
 						buffer[bytes_received] = '\0';
-						requests[i] += buffer;
-						if (requests[i].find("\r\n\r\n") != std::string::npos)
+						client.setRequest(buffer);
+						if (client.getRequest().find("\r\n\r\n") != std::string::npos)
 							break;
 					}
 					RequestManagement requestManagement(serverInfo);
-					requestManagement.parser(requests[i] , clients[i]);
+					requestManagement.parser(client.getRequest() , pollclients[i]);
 					SendManagement sendManagement(requestManagement, serverInfo);
 					sendManagement.checkRequest(requestManagement.getExtensionType());
-					sendManagement.sendResponse(clients[i].fd);
+					sendManagement.sendResponse(pollclients[i].fd);
 				}
 			}
 			}

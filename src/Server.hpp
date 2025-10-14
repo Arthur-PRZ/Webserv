@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include "Location.hpp"
+#include "Client.hpp"
+#include <map>
 
 class Server {
 	private:
@@ -13,13 +15,14 @@ class Server {
 		std::string _index;
 		std::string _errorPages;
 		std::string _clientMaxBodySize;
+		std::vector<Location> _locations;
+		std::map<int, Client> _clients;
 
 	public:
 		Server();
 		~Server();
 		Server(const Server& other);
 		Server &operator=(const Server& other);
-		std::vector<Location> _locations;
 
 		const std::string &getPort( void ) const;
 		const std::string &getHost( void ) const;
@@ -40,6 +43,8 @@ class Server {
 		void setLocationsServer( const std::vector<Location>& locations );
 
 		void addLocation( const Location &location );
+
+		Client &addClient( int fd );
 };
 
 #endif

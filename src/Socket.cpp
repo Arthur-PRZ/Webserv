@@ -65,7 +65,7 @@ void Socket::listen() {
 	_clientNbr++;
 }
 
-void Socket::accept() {
+int Socket::accept() {
 	int client_fd = ::accept(_fd, NULL, NULL);
 	printf("accept returned fd=%d\n", client_fd);
 	if (client_fd >= 0)
@@ -77,4 +77,5 @@ void Socket::accept() {
 	}
 	else
 		throw("accept error");
+	return client_fd;
 }

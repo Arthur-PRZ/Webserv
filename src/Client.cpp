@@ -1,20 +1,71 @@
 #include "Client.hpp"
 
-Client::Client(int socket) : state(NONE), fd(socket), expectedBodySize(0),
-							request(""), header(""), body("") {}
+Client::Client() : _state(READING_HEADER), _fd(-1), _expectedBodySize(0),
+							_request(""), _header(""), _body("") {}
+
+Client::Client(int socket) : _state(READING_HEADER), _fd(socket), _expectedBodySize(0),
+							_request(""), _header(""), _body("") {}
 Client::~Client() {}
 
-Client::Client(const Client& other) : state(other.state), fd(other.fd), expectedBodySize(other.expectedBodySize),
-							request(other.request), header(other.header), body(other.body) {}
+Client::Client(const Client& other) : _state(other._state), _fd(other._fd), _expectedBodySize(other._expectedBodySize),
+							_request(other._request), _header(other._header), _body(other._body) {}
 
 Client &Client::operator=(const Client& other) {
 	if (this != &other) {
-		this->state = other.state;
-		this->fd = other.fd;
-		this->expectedBodySize = other.expectedBodySize;
-		this->request = other.request;
-		this->header = other.header;
-		this->body = other.body;
+		this->_state = other._state;
+		this->_fd = other._fd;
+		this->_expectedBodySize = other._expectedBodySize;
+		this->_request = other._request;
+		this->_header = other._header;
+		this->_body = other._body;
 	}
 	return *this;
+}
+
+void Client::setRequest( char *buffer ) {
+	_request += buffer; 
+}
+
+void Client::setState( ClientState state ) {
+	_state = state;
+}
+
+void Client::setFd( int fd ) {
+	_fd = fd;
+}
+
+void Client::setExpectedBodySize( int bodySize ) {
+	_expectedBodySize = bodySize;
+}
+
+void Client::setHeader( std::string &header ) {
+	_header += header;
+}
+
+void Client::setBody( std::string &body ) {
+	_body += body;
+}
+
+std::string &Client::getRequest() { 
+	return _request;
+}
+
+ClientState &Client::getState() {
+	return _state;
+}
+
+int &Client::getFd() {
+	return _fd;
+}
+
+int &Client::getExpectedBodySize() {
+	return _expectedBodySize;
+}
+
+std::string &Client::getHeader() {
+	return _header;
+}
+
+std::string &Client::getBody() {
+	return _body;
 }

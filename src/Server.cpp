@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Client.hpp"
 #include <iostream>
 
 Server::Server()
@@ -9,7 +10,8 @@ Server::Server()
 	  _index(""),
 	  _errorPages(""),
 	  _clientMaxBodySize(""),
-	  _locations() {}
+	  _locations(),
+	  _clients() {}
 
 Server::~Server() {}
 
@@ -21,7 +23,8 @@ Server::Server(const Server& other)
 	  _index(other._index),
 	  _errorPages(other._errorPages),
 	  _clientMaxBodySize(other._clientMaxBodySize),
-	  _locations(other._locations) {}
+	  _locations(other._locations),
+	  _clients(other._clients) {}
 
 Server &Server::operator=(const Server& other) {
 	if (this != &other)
@@ -32,7 +35,8 @@ Server &Server::operator=(const Server& other) {
 		_index = other._index;
 		_errorPages = other._errorPages;
 		_clientMaxBodySize = other._clientMaxBodySize;
-		_locations = other._locations; 
+		_locations = other._locations;
+		_clients = other._clients;
 	}
 	return *this;
 }
@@ -101,7 +105,12 @@ void Server::setLocationsServer( const std::vector<Location>& locations ) {
 	_locations = locations;
 }
 
-void Server::addLocation( const Location &location ) 
-{
+void Server::addLocation( const Location &location ) {
 	_locations.push_back(location);
+}
+
+Client &Server::addClient( int fd ) {
+	Client client(fd);
+	_clients[fd] = client;
+	return _clients[fd];
 }
