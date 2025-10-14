@@ -31,7 +31,7 @@ class Socket {
 		int getFd() const;
 		void bind(int port);
 		void listen();
-		int accept();
+		void accept();
 
 		pollfd* getClients();
 		int& getClientNbr();

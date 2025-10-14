@@ -60,9 +60,12 @@ void Socket::bind(int port) {
 
 void Socket::listen() {
 	::listen(_fd, SOMAXCONN);
+	_clients[0].fd = _fd;
+	_clients[0].events = POLLIN;
+	_clientNbr++;
 }
 
-int Socket::accept() {
+void Socket::accept() {
 	int client_fd = ::accept(_fd, NULL, NULL);
 	printf("accept returned fd=%d\n", client_fd);
 	if (client_fd >= 0)
@@ -72,5 +75,6 @@ int Socket::accept() {
 		_clients[_clientNbr].events = POLLIN;
 		_clientNbr++;
 	}
-	return client_fd;
+	else
+		throw("accept error");
 }
