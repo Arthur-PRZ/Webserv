@@ -1,5 +1,5 @@
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 NAME = webserv
 SRCDIR = src
 SRC = main.cpp Socket.cpp Server.cpp Location.cpp parser.cpp SendManagement.cpp RequestManagement.cpp Image.cpp Client.cpp

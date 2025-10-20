@@ -45,6 +45,8 @@ class Server {
 		void addLocation( const Location &location );
 
 		Client &addClient( int fd );
+		Client &getClient(int fd);
+		void removeClients(int fd);
 };
 
 #endif

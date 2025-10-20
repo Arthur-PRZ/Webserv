@@ -14,7 +14,7 @@ class Client {
 	private:
 		ClientState _state;
 		int _fd;
-		int _expectedBodySize;
+		unsigned long _expectedBodySize;
 		std::string _request;
 		std::string _header;
 		std::string _body;
@@ -31,14 +31,15 @@ class Client {
 		void setFd( int fd );
 		void setExpectedBodySize( int bodySize );
 		void setHeader( std::string &header );
-		void setBody( std::string &body );
+		void setBody( std::string body );
 
 		std::string &getRequest();
 		ClientState &getState();
 		int &getFd();
-		int &getExpectedBodySize();
+		unsigned long &getExpectedBodySize();
 		std::string &getHeader();
 		std::string &getBody();
+		void reset();
 };
 
 #endif

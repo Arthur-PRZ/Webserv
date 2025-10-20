@@ -44,8 +44,6 @@ void Image::setFileContent(std::string &boundary, std::string &body) {
 	std::string::size_type pos;
 	ssize_t posBefore;
 	std::string::size_type contentPos;
-	std::cout << "body: " << body << std::endl;
-	std::cout << "boundary: "<< boundary << std::endl;
 
 	pos = body.find(boundary);
 	if (pos == std::string::npos)
@@ -68,7 +66,7 @@ void Image::setFileContent(std::string &boundary, std::string &body) {
 		return;
 	}
 	_content = body.substr(posBefore, contentPos - pos - 2);
-	std::cout << "The content of the image is :" << _content << std::endl;
+	// std::cout << "The content of the image is :" << _content << std::endl;
 }
 
 std::string &Image::getContent() {

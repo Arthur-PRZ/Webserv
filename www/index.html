@@ -1,20 +1,110 @@
 <!DOCTYPE HTML>
 <html>
-	<head>
-		<title>WEBSERV</title>
-	</head>
-	<body>
-		<p>This is the Webserv of <a href="https://profile-v3.intra.42.fr/users/artperez" target="_blank">artperez</a> and <a href="https://profile-v3.intra.42.fr/users/ctravers" target="_blank">ctravers</a></p>
-		<form action="/cgi/hello.py" method="POST">
-			Username: <input type="text" name="username">
-			<input type="submit" value="Login">
-		</form>
-		<p>Enter root as username!</p>
-		<form action="/upload" method="POST" enctype="multipart/form-data">
-        	<label for="file">Choisissez un fichier :</label>
-        	<input type="file" name="file" id="file">
-        	<br><br>
+<head>
+    <title>WEBSERV</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <p>This is the Webserv of 
+        <a href="https://profile-v3.intra.42.fr/users/artperez" target="_blank">artperez</a> and 
+        <a href="https://profile-v3.intra.42.fr/users/ctravers" target="_blank">ctravers</a>
+    </p>
+
+    <form action="/cgi/hello.py" method="POST">
+        Username: <input type="text" name="username">
+        <input type="submit" value="Login">
+    </form>
+    <br>
+
+    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="file">Choisissez un fichier :</label>
+        <input type="file" name="file" id="file">
+        <br><br>
         <input type="submit" value="Envoyer">
-		<!-- <img src="NewPiske(3).png"> -->
-	</body>
+    </form>
+
+    <div id="message" style="color: red; margin: 10px 0;"></div>
+    <div id="gallery"></div>
+
+    <script>
+        // Charger les images au démarrage
+        window.addEventListener('load', async () => {
+            try {
+                const res = await fetch("/list-images");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.images) {
+                        data.images.forEach(path => addImage(path));
+                    }
+                }
+            } catch (err) {
+                console.error("Erreur chargement images:", err);
+            }
+        });
+
+        document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = "";
+            
+            try {
+                const formData = new FormData(e.target);
+                const res = await fetch("/upload", { method: "POST", body: formData });
+                
+                if (!res.ok) {
+                    throw new Error(`Erreur HTTP: ${res.status}`);
+                }
+                
+                const data = await res.json();
+                
+                if (data.filepath) {
+                    addImage(data.filepath);
+                    messageDiv.style.color = "green";
+                    messageDiv.textContent = "Image uploadée avec succès !";
+                    e.target.reset(); // Réinitialiser le formulaire
+                } else {
+                    throw new Error("Pas de chemin de fichier retourné");
+                }
+            } catch (err) {
+                messageDiv.style.color = "red";
+                messageDiv.textContent = `Erreur: ${err.message}`;
+                console.error("Erreur upload:", err);
+            }
+        });
+
+        function addImage(path) {
+            const container = document.createElement("div");
+            container.style.display = "inline-block";
+            container.style.margin = "10px";
+            
+            const img = document.createElement("img");
+            img.src = path;
+            img.style.width = "200px";
+            img.style.cursor = "pointer";
+            img.style.border = "2px solid #ccc";
+            img.style.borderRadius = "5px";
+            
+			img.onclick = async () => {
+			    if (confirm("Supprimer cette image ?")) {
+			        try {
+			            const res = await fetch(path, {
+			                method: "DELETE"  // ← Utilise DELETE au lieu de POST /delete
+			            });
+			            
+			            if (res.ok) {
+			                container.remove();
+			            } else {
+			                alert("Erreur lors de la suppression");
+			            }
+			        } catch (err) {
+			            alert("Erreur: " + err.message);
+			        }
+			    }
+			};
+            
+            container.appendChild(img);
+            document.getElementById("gallery").appendChild(container);
+        }
+    </script>
+</body>
 </html>

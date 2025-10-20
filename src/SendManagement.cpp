@@ -31,7 +31,8 @@ void SendManagement::sendResponse(int client_fd) {
 
 void SendManagement::checkRequest(std::string &extensionType) {
 	if (_request.getMethod() == "GET") {
-		if (_request.getPageFound() || extensionType == "png")
+		std::cout << "My path is : " << _request.getPath() << std::endl;
+		if (_request.getPageFound() || extensionType == "png" || _request.getPath() == "./www/list-images")
 			OK();
 		else
 			errorNotFound();
@@ -77,7 +78,15 @@ void SendManagement::OK() {
 		}
 		else
 			errorNotFound();
-		type = "image/png";
+		if (_request.getPath() == "./www/list-images")
+		{
+			std::cout << "\033[31m" << "JE RENTRE I'M IN" << "\033[0m" << std::endl;
+			std::string imageName = _request.getImage().getFilename();
+			content = "{\"filepath\": \"/uploads/" + imageName + "\"}";
+			type = "application/json";
+		}
+		else
+			type = "image/png";
 	}
 	std::stringstream ss;
     ss << content.size();
@@ -155,3 +164,8 @@ void SendManagement::execPythonScript() {
 		_response += cgiOutput;
 	}
 }
+
+const std::string &SendManagement::getResponse() const {
+	return _response;
+}
+

@@ -42,7 +42,7 @@ void Client::setHeader( std::string &header ) {
 	_header += header;
 }
 
-void Client::setBody( std::string &body ) {
+void Client::setBody( std::string body ) {
 	_body += body;
 }
 
@@ -58,7 +58,7 @@ int &Client::getFd() {
 	return _fd;
 }
 
-int &Client::getExpectedBodySize() {
+unsigned long &Client::getExpectedBodySize() {
 	return _expectedBodySize;
 }
 
@@ -68,4 +68,11 @@ std::string &Client::getHeader() {
 
 std::string &Client::getBody() {
 	return _body;
+}
+
+void Client::reset() {
+	_request = "";
+	_body = "";
+	_header = "";
+	_expectedBodySize = 0;
 }

@@ -114,3 +114,11 @@ Client &Server::addClient( int fd ) {
 	_clients[fd] = client;
 	return _clients[fd];
 }
+
+Client &Server::getClient(int fd) {
+	return _clients[fd];
+}
+
+void Server::removeClients(int fd) {
+	_clients.erase(fd);
+}

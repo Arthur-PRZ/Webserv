@@ -1,5 +1,8 @@
+#include <cstddef>
 #include <exception>
 #include <iterator>
+#include <stdexcept>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -32,44 +35,90 @@ int main(int argc, char **argv) {
 			configFile.open("config.conf", std::ios::binary);
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
-		server.accept();
 		parserConfig(configFile, serverInfo);
 		while (true) {
-			Client client;
 			pollfd *pollclients = server.getClients();
 			int ret = poll(pollclients, server.getClientNbr(), -1);
 			if (ret < 0)
-				throw("poll error");
+				throw std::runtime_error("poll error");
+
 			for (int i = 0; i < server.getClientNbr(); i++)
 			{
-				if (pollclients[i].fd == server.getFd() && pollclients[i].revents & POLLIN)
+				if (!(pollclients[i].revents & POLLIN))
+					continue;
+				if (pollclients[i].fd == server.getFd())
 				{
 					int new_fd = server.accept();
-					client = serverInfo.addClient(new_fd);
+					serverInfo.addClient(new_fd);
+					std::cout << "Nouveau client: " << new_fd << std::endl;
 				}
-				else if (pollclients[i].revents & POLLIN)
+				else
 				{
+					int client_fd = pollclients[i].fd;
+					Client &client = serverInfo.getClient(client_fd);
+
 					char buffer[1024];
+					int bytes_received = recv(pollclients[i].fd, buffer, sizeof(buffer) - 1, 0);
+					if (bytes_received <= 0)
+					{
+						close(client_fd);
+						serverInfo.removeClients(client_fd);
+						continue;
+					}
+					buffer[bytes_received] = '\0';
 					if (client.getState() == READING_HEADER)
 					{
-						int bytes_received = recv(pollclients[i].fd, buffer, sizeof(buffer) - 1, 0);
-						if (bytes_received <= 0)
-							break;
-						buffer[bytes_received] = '\0';
 						client.setRequest(buffer);
 						if (client.getRequest().find("\r\n\r\n") != std::string::npos)
-							break;
+						{
+							size_t pos = client.getRequest().find("Content-Length");
+							if (pos != std::string::npos)
+							{
+								pos = client.getRequest().find(' ', pos) + 1;
+							    size_t endPos = client.getRequest().find("\r\n", pos);
+							    std::string lengthStr = client.getRequest().substr(pos, endPos - pos);
+							    client.setExpectedBodySize(RequestManagement::toUnsignedLong(lengthStr));
+							    
+							    size_t bodyStart = client.getRequest().find("\r\n\r\n") + 4;
+								client.setState(READING_BODY);
+
+							    if (bodyStart < client.getRequest().size()) {
+							        client.setBody(client.getRequest().substr(bodyStart));
+							    }
+
+							    if (client.getBody().size() >= client.getExpectedBodySize()) {
+									client.setState(PROCESS_REQUEST);
+							    }							
+							} else {
+								client.setState(PROCESS_REQUEST);
+							}
+						}
+						std::cout << "The request is : " << client.getRequest() << std::endl;
 					}
-					RequestManagement requestManagement(serverInfo);
-					requestManagement.parser(client.getRequest() , pollclients[i]);
-					SendManagement sendManagement(requestManagement, serverInfo);
-					sendManagement.checkRequest(requestManagement.getExtensionType());
-					sendManagement.sendResponse(pollclients[i].fd);
+					else if (client.getState() == READING_BODY) {
+						std::string bodyChunck(buffer, bytes_received);
+
+						client.setBody(bodyChunck);
+						if (client.getBody().size() >= client.getExpectedBodySize()) {
+							client.setState(PROCESS_REQUEST);
+						}
+					}
+
+					if (client.getState() == PROCESS_REQUEST)
+					{
+						RequestManagement requestManagement(serverInfo);
+						requestManagement.setClientBody(client.getBody());
+						requestManagement.parser(client.getRequest());
+						
+						SendManagement sendManagement(requestManagement, serverInfo);
+						sendManagement.checkRequest(requestManagement.getExtensionType());
+						sendManagement.sendResponse(client_fd);
+						client.reset();
+						client.setState(READING_HEADER);
+					}
 				}
 			}
 			}
-		    // std::cout << request << std::endl;
-		    // close(client_fd);
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}
