@@ -22,10 +22,13 @@ class SendManagement {
 		const std::string &getResponse() const;
 		int &getResponseSize();
 		void checkRequest(std::string &extensionType);
-		void OK();
+		void OK(std::string &extensionType);
 		void errorNotFound();
 		void execPythonScript();
 		
 };
 
 #endif
+
+// DELETE ./cgi-bin/delete_ressource.py?ressource= + encoreURIComponent(ressource);
+// GET index.html

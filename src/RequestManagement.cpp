@@ -1,4 +1,5 @@
 #include "RequestManagement.hpp"
+#include "Location.hpp"
 #include <sstream>
 #include <dirent.h>
 #include <string>
@@ -77,6 +78,9 @@ void RequestManagement::parser(std::string &request)
         {
             if (word == "/")
                 _path = (_server.getRoot() + "/index.html").c_str();
+			else if (word.find(".py") != std::string::npos) {
+				_path = ()
+			}
             else
                 _path = (_server.getRoot() + word).c_str();
 

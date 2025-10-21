@@ -22,89 +22,34 @@
         <br><br>
         <input type="submit" value="Envoyer">
     </form>
-
-    <div id="message" style="color: red; margin: 10px 0;"></div>
-    <div id="gallery"></div>
-
-    <script>
-        // Charger les images au démarrage
-        window.addEventListener('load', async () => {
-            try {
-                const res = await fetch("/list-images");
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.images) {
-                        data.images.forEach(path => addImage(path));
-                    }
-                }
-            } catch (err) {
-                console.error("Erreur chargement images:", err);
-            }
-        });
-
-        document.getElementById("uploadForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const messageDiv = document.getElementById("message");
-            messageDiv.textContent = "";
-            
-            try {
-                const formData = new FormData(e.target);
-                const res = await fetch("/upload", { method: "POST", body: formData });
-                
-                if (!res.ok) {
-                    throw new Error(`Erreur HTTP: ${res.status}`);
-                }
-                
-                const data = await res.json();
-                
-                if (data.filepath) {
-                    addImage(data.filepath);
-                    messageDiv.style.color = "green";
-                    messageDiv.textContent = "Image uploadée avec succès !";
-                    e.target.reset(); // Réinitialiser le formulaire
-                } else {
-                    throw new Error("Pas de chemin de fichier retourné");
-                }
-            } catch (err) {
-                messageDiv.style.color = "red";
-                messageDiv.textContent = `Erreur: ${err.message}`;
-                console.error("Erreur upload:", err);
-            }
-        });
-
-        function addImage(path) {
-            const container = document.createElement("div");
-            container.style.display = "inline-block";
-            container.style.margin = "10px";
-            
-            const img = document.createElement("img");
-            img.src = path;
-            img.style.width = "200px";
-            img.style.cursor = "pointer";
-            img.style.border = "2px solid #ccc";
-            img.style.borderRadius = "5px";
-            
-			img.onclick = async () => {
-			    if (confirm("Supprimer cette image ?")) {
-			        try {
-			            const res = await fetch(path, {
-			                method: "DELETE"  // ← Utilise DELETE au lieu de POST /delete
-			            });
-			            
-			            if (res.ok) {
-			                container.remove();
-			            } else {
-			                alert("Erreur lors de la suppression");
-			            }
-			        } catch (err) {
-			            alert("Erreur: " + err.message);
-			        }
-			    }
-			};
-            
-            container.appendChild(img);
-            document.getElementById("gallery").appendChild(container);
-        }
-    </script>
+	<!-- <img src="uploads/blue_wall.png">e -->
+    <br>
+	<form id="deleteForm">
+		<label for="ressource">Select a ressource to delete</label>
+		<select id="ressource" name="ressource">
+			<option value="test1">test1.txt</option>
+			<option value="test2">test2.png</option>
+			<option value="test3">test3.png</option>
+		</select>
+		<button type="button" onclick="deleteRessource()">Delete</button>
+	</form>
+	<p id="responseMessage"></p>
+	<script>
+		function deleteRessource() {
+			const ressource = document.getElementById('ressource').value;
+			fetch("./cgi-bin/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
+				method:'DELETE',
+			})
+			.then(response => response.text())
+			.then(data => {
+				document.getElementById("responseMessage").innerText = data;
+			})
+		}
+	</script>
 </body>
 </html>
+
+<!-- fetch ./cgi-bin/delete.py + test1.png methode -> DELETE
+
+	DELETE ./cgi-bin/delete.pyresponse?=test1.png HTTP/1.1
+-->

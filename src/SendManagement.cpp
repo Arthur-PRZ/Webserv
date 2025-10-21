@@ -31,9 +31,9 @@ void SendManagement::sendResponse(int client_fd) {
 
 void SendManagement::checkRequest(std::string &extensionType) {
 	if (_request.getMethod() == "GET") {
-		std::cout << "My path is : " << _request.getPath() << std::endl;
-		if (_request.getPageFound() || extensionType == "png" || _request.getPath() == "./www/list-images")
-			OK();
+		// std::cout << "My path is : " << _request.getPath() << std::endl;
+		if (_request.getPageFound() || extensionType == "png" || extensionType == "txt")
+			OK(extensionType);
 		else
 			errorNotFound();
 	}
@@ -51,9 +51,12 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			_response = "HTTP/1.1 302 Found\r\nLocation: /\r\nContent-Length: 0\r\n\r\n";
 		}
 	}
+	else if (_request.getMethod() == "DELETE") {
+		execPythonScript();
+	}
 }
 
-void SendManagement::OK() {
+void SendManagement::OK(std::string &extensionType) {
 	std::string content;
 	std::string type;
 	if (_request.getPageFound())
@@ -78,15 +81,10 @@ void SendManagement::OK() {
 		}
 		else
 			errorNotFound();
-		if (_request.getPath() == "./www/list-images")
-		{
-			std::cout << "\033[31m" << "JE RENTRE I'M IN" << "\033[0m" << std::endl;
-			std::string imageName = _request.getImage().getFilename();
-			content = "{\"filepath\": \"/uploads/" + imageName + "\"}";
-			type = "application/json";
-		}
-		else
+		if (extensionType == "png")
 			type = "image/png";
+		else if (extensionType == "txt")
+			type = "plain/text";
 	}
 	std::stringstream ss;
     ss << content.size();
@@ -116,13 +114,29 @@ void SendManagement::execPythonScript() {
 	std::string method = "REQUEST_METHOD=" + _request.getMethod();
 	std::string length = "CONTENT_LENGTH=" + contentLength;
 	std::string type = "CONTENT_TYPE=application/x-www-form-urlencoded";
-	std::string script = "SCRIPT_FILENAME=./cgi-bin/hello.py";
 
+
+	std::string fullPath = _request.getPath().substr(6);
+	std::string scriptPath;
+	std::string queryString;
+
+	size_t questionMarkPos = fullPath.find('?');
+	if (questionMarkPos != std::string::npos) {
+		scriptPath = fullPath.substr(0, questionMarkPos);
+		queryString = fullPath.substr(questionMarkPos + 1);
+	} else {
+		scriptPath = fullPath;
+		queryString = "";
+	}
+
+	std::string script = "SCRIPT_FILENAME=" + scriptPath;
+	std::string query = "QUERY_STRING=" + queryString + ".txt";
 	char *envp[] = {
 		(char *)method.c_str(),
 		(char *)length.c_str(),
 		(char *)type.c_str(),
 		(char *)script.c_str(),
+		(char *)query.c_str(),
 		NULL
 	};
 
@@ -132,7 +146,7 @@ void SendManagement::execPythonScript() {
 	pipe(pipeOut);
 	char *argv[] = {
 		(char *)"python3",
-		(char *)"./cgi-bin/hello.py",
+		(char *)scriptPath.c_str(),
 		NULL
 	};
 
@@ -161,6 +175,44 @@ void SendManagement::execPythonScript() {
 		close(pipeOut[0]);
 		int status;
 		waitpid(pid, &status, 0);
+
+		std::string headers;
+		std::string body;
+
+		size_t pos = cgiOutput.find("\r\n\r\n");
+		if (pos != std::string::npos) {
+		    headers = cgiOutput.substr(0, pos);
+		    body = cgiOutput.substr(pos + 4);
+		} else {
+		    pos = cgiOutput.find("\n\n");
+		    if (pos != std::string::npos) {
+		        headers = cgiOutput.substr(0, pos);
+		        body = cgiOutput.substr(pos + 2);
+		    } else {
+		        body = cgiOutput;
+		    }
+		}
+
+		std::string contentType = "text/plain";
+		std::istringstream headerStream(headers);
+		std::string line;
+		while (std::getline(headerStream, line)) {
+		    if (line.find("Content-Type:") == 0) {
+		        contentType = line.substr(13);
+		        size_t start = contentType.find_first_not_of(" \t\r");
+		        size_t end = contentType.find_last_not_of(" \t\r");
+		        contentType = contentType.substr(start, end - start + 1);
+		        break;
+		    }
+		}
+
+		std::stringstream ss;
+    	ss << cgiOutput.size();
+    	std::string content_length = ss.str();
+		_response = "HTTP/1.1 200 OK\r\n";
+		_response += "Content-Type:" + contentType +"\r\n";
+		_response += "Content-Length: " + content_length + "\r\n";
+		_response += "\r\n";
 		_response += cgiOutput;
 	}
 }
@@ -168,4 +220,3 @@ void SendManagement::execPythonScript() {
 const std::string &SendManagement::getResponse() const {
 	return _response;
 }
-
