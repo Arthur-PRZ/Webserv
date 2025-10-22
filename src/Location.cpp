@@ -7,6 +7,7 @@ Location::Location()
 	  _cgiExtensions(""),
 	  _uploadsPath(""),
 	  _redirect(""),
+	  _path(""),
 	  _autoindex(false)
 	   {}
 
@@ -18,7 +19,9 @@ Location::Location(const Location& other)
 	  _cgiExtensions(other._cgiExtensions),
 	  _uploadsPath(other._uploadsPath),
 	  _redirect(other._redirect),
-	  _autoindex(other._autoindex) {}
+	  _path(other._path),
+	  _autoindex(other._autoindex)
+	  {}
 
 Location &Location::operator=(const Location& other) {
 	if (this != &other)
@@ -28,6 +31,7 @@ Location &Location::operator=(const Location& other) {
 		_cgiExtensions = other._cgiExtensions;
 		_uploadsPath = other._uploadsPath;
 		_redirect = other._redirect;
+		_path = other._path;
 		_autoindex = other._autoindex;
 	}
 	return *this;
@@ -88,4 +92,12 @@ void Location::setAutoIndex( const bool autoindex) {
 void Location::aff()
 {
 	std::cout << _methods << std::endl;
+}
+
+void Location::setPath( const std::string& path) {
+	_path = path;
+}
+
+const std::string &Location::getPath( void ) const {
+	return _path;
 }

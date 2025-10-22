@@ -9,6 +9,7 @@ class Location {
 	 	std::string _cgiExtensions;
 	 	std::string _uploadsPath;
 		std::string _redirect;
+		std::string _path;
 		bool _autoindex;
 
 	public:
@@ -22,6 +23,7 @@ class Location {
 		const std::string &getCGIExtensions( void ) const;
 		const std::string &getUploadsPath( void ) const;
 		const std::string &getRedirect( void ) const;
+		const std::string &getPath( void ) const;
 		bool getAutoIndex( void ) const;
 
 		void setMethods( const std::string& methods );
@@ -30,6 +32,7 @@ class Location {
 		void setUploadsPath( const std::string& uploadsPath );
 		void setRedirect( const std::string& redirect);
 		void setAutoIndex( const bool autoindex );
+		void setPath( const std::string& path);
 
 		void aff();
 };

@@ -1,10 +1,12 @@
 #include "Parser.hpp"
+#include <cstddef>
 
-void setLocation(std::ifstream &file, Server &server)
+void setLocation(std::ifstream &file, Server &server, const std::string &path)
 {
     std::string line;
     int strSize = 0;
     Location newLocation;
+	newLocation.setPath(path);
     std::map<std::string, void(Location::*)(const std::string&)> setters;
     setters["methods"] = &Location::setMethods;
     setters["root"] = &Location::setRoot;
@@ -76,7 +78,13 @@ void parserConfig(std::ifstream &file, Server &server)
         }
         if (line.find("location") != std::string::npos)
         {
-            setLocation(file, server);
+			size_t pos = line.find("location");
+			size_t brace = line.find("{");
+			std::string path = line.substr(pos + 8, brace - (pos + 8));
+			path.erase(0, path.find_first_not_of(" \t"));
+			path.erase(path.find_last_not_of(" \t") + 1);
+			
+            setLocation(file, server, path);
         }
     }
 }

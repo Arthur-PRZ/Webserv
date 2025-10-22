@@ -22,7 +22,7 @@ void SendManagement::sendResponse(int client_fd) {
 	while (total_sent < _response.size()) {
 		ssize_t n = send(client_fd, _response.c_str() + total_sent,
 		                     _response.size() - total_sent, 0);
-		if (n == -1) {
+		if (n <= 0) {
 			throw std::runtime_error("send failed");
 		}
 		total_sent += n;
@@ -116,7 +116,7 @@ void SendManagement::execPythonScript() {
 	std::string type = "CONTENT_TYPE=application/x-www-form-urlencoded";
 
 
-	std::string fullPath = _request.getPath().substr(6);
+	std::string fullPath = _request.getPath();
 	std::string scriptPath;
 	std::string queryString;
 
@@ -193,7 +193,7 @@ void SendManagement::execPythonScript() {
 		    }
 		}
 
-		std::string contentType = "text/plain";
+		std::string contentType = "text/html";
 		std::istringstream headerStream(headers);
 		std::string line;
 		while (std::getline(headerStream, line)) {

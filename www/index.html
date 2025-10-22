@@ -1,55 +1,181 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="fr">
 <head>
-    <title>WEBSERV</title>
     <meta charset="UTF-8">
+    <title>WEBSERV — artperez & ctravers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #0b132b, #1c2541);
+            color: #e6f0ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        a {
+            color: #68d8ff;
+            text-decoration: none;
+        }
+        a:hover { text-decoration: underline; }
+
+        header {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+        header p {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            color: #b0c4de;
+        }
+
+        main {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        section { margin-bottom: 28px; }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 18px;
+            border-radius: 10px;
+        }
+        label {
+            font-size: 0.9rem;
+            color: #cfd9e8;
+        }
+        input[type="text"],
+        input[type="file"],
+        select {
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* --- FIX pour les options visibles --- */
+        select option {
+            background-color: #1c2541; /* fond sombre */
+            color: #e6f0ff;            /* texte clair */
+        }
+        select:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        input[type="file"]::file-selector-button {
+            background: #1e90ff;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background: #339cff;
+        }
+
+        input[type="submit"],
+        button {
+            margin-top: 8px;
+            background: linear-gradient(90deg, #4f9ce6, #2bb5b5);
+            border: none;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.1s ease, background 0.3s ease;
+        }
+        input[type="submit"]:hover,
+        button:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #56b0ff, #31c4c4);
+        }
+
+        #responseMessage {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #9fe3ff;
+        }
+    </style>
 </head>
 <body>
-    <p>This is the Webserv of 
-        <a href="https://profile-v3.intra.42.fr/users/artperez" target="_blank">artperez</a> and 
-        <a href="https://profile-v3.intra.42.fr/users/ctravers" target="_blank">ctravers</a>
-    </p>
 
-    <form action="/cgi/hello.py" method="POST">
-        Username: <input type="text" name="username">
-        <input type="submit" value="Login">
-    </form>
-    <br>
+    <header>
+        <h1>🌐 WEBSERV</h1>
+        <p>by <a href="https://profile-v3.intra.42.fr/users/artperez" target="_blank">artperez</a> & 
+           <a href="https://profile-v3.intra.42.fr/users/ctravers" target="_blank">ctravers</a>
+        </p>
+    </header>
 
-    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-        <label for="file">Choisissez un fichier :</label>
-        <input type="file" name="file" id="file">
-        <br><br>
-        <input type="submit" value="Envoyer">
-    </form>
-	<!-- <img src="uploads/blue_wall.png">e -->
-    <br>
-	<form id="deleteForm">
-		<label for="ressource">Select a ressource to delete</label>
-		<select id="ressource" name="ressource">
-			<option value="test1">test1.txt</option>
-			<option value="test2">test2.png</option>
-			<option value="test3">test3.png</option>
-		</select>
-		<button type="button" onclick="deleteRessource()">Delete</button>
-	</form>
-	<p id="responseMessage"></p>
-	<script>
-		function deleteRessource() {
-			const ressource = document.getElementById('ressource').value;
-			fetch("./cgi-bin/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
-				method:'DELETE',
-			})
-			.then(response => response.text())
-			.then(data => {
-				document.getElementById("responseMessage").innerText = data;
-			})
-		}
-	</script>
+    <main>
+        <section>
+            <form action="/cgi/hello.py" method="POST">
+                <label for="username">Nom d'utilisateur :</label>
+                <input type="text" name="username" id="username" placeholder="Votre pseudo...">
+                <input type="submit" value="Se connecter">
+            </form>
+        </section>
+
+        <section>
+            <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+                <label for="file">Choisissez un fichier :</label>
+                <input type="file" name="file" id="file">
+                <input type="submit" value="Envoyer">
+            </form>
+        </section>
+
+        <section>
+            <form id="deleteForm">
+                <label for="ressource">Sélectionnez une ressource à supprimer :</label>
+                <select id="ressource" name="ressource">
+                    <option value="test1">test1.txt</option>
+                    <option value="test2">test2.png</option>
+                    <option value="test3">test3.png</option>
+                </select>
+                <button type="button" onclick="deleteRessource()">Supprimer</button>
+            </form>
+            <p id="responseMessage"></p>
+        </section>
+    </main>
+
+    <script>
+        function deleteRessource() {
+            const ressource = document.getElementById('ressource').value;
+            fetch("./cgi-bin/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
+                method:'DELETE',
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("responseMessage").innerText = data;
+            })
+        }
+    </script>
 </body>
 </html>
-
-<!-- fetch ./cgi-bin/delete.py + test1.png methode -> DELETE
-
-	DELETE ./cgi-bin/delete.pyresponse?=test1.png HTTP/1.1
--->

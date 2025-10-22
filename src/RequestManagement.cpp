@@ -1,5 +1,6 @@
 #include "RequestManagement.hpp"
 #include "Location.hpp"
+#include <cstddef>
 #include <sstream>
 #include <dirent.h>
 #include <string>
@@ -76,14 +77,25 @@ void RequestManagement::parser(std::string &request)
             _method = word;
         else if ( i == 1 )
         {
-            if (word == "/")
+			if (word == "/")
                 _path = (_server.getRoot() + "/index.html").c_str();
 			else if (word.find(".py") != std::string::npos) {
-				_path = ()
-			}
-            else
-                _path = (_server.getRoot() + word).c_str();
+			    const std::vector<Location>& locations = _server.getLocations();
 
+			    for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+			        if (it->getPath() == "/cgi") {
+			            std::cout << "Found CGI location: " << it->getPath() << std::endl;
+			            std::cout << "The root is : " << it->getRoot() << std::endl;
+						size_t pos = word.find("/", 2);
+						word = word.substr(pos);
+			            _path = (it->getRoot() + word).c_str();
+			            std::cout << "The path is : " << _path << std::endl;
+			            break;
+			        }
+			    }
+			}
+			else
+                _path = (_server.getRoot() + word).c_str();
         }
         else if ( i == 2 )
             _httpVer = word;
