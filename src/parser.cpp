@@ -68,7 +68,13 @@ void parserConfig(std::ifstream &file, Server &server)
     {
         for (curr = setters.begin(); curr != setters.end(); curr++)
         {
-            if (line.find(curr->first) != std::string::npos)
+			if (line.find("error_page") != std::string::npos && curr->first == "error_page") {
+				size_t pos = line.find("/");
+				std::string value = line.substr(pos);
+				value.erase(value.size() - 1);
+                (server.*(curr->second))(value);
+			}
+            else if (line.find(curr->first) != std::string::npos)
             {
                 strSize = line.find(curr->first);
                 std::string value = line.substr(strSize + curr->first.size() + 1);

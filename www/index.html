@@ -168,7 +168,7 @@
     <script>
         function deleteRessource() {
             const ressource = document.getElementById('ressource').value;
-            fetch("./cgi-bin/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
+            fetch("/cgi/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
                 method:'DELETE',
             })
             .then(response => response.text())

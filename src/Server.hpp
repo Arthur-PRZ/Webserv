@@ -29,7 +29,7 @@ class Server {
 		const std::string &getServerName( void ) const;
 		const std::string &getRoot( void ) const;
 		const std::string &getIndex( void ) const;
-		const std::string &getErrorPages( void ) const;
+		std::string &getErrorPages( void );
 		std::string &getClientMaxBodySize( void );
 		const std::vector<Location> &getLocations( void ) const;
 	

@@ -61,7 +61,7 @@ const std::string &Server::getIndex() const {
 	return _index;
 }
 
-const std::string &Server::getErrorPages() const {
+std::string &Server::getErrorPages() {
 	return _errorPages;
 }
 

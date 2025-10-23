@@ -94,13 +94,13 @@ void SendManagement::OK(std::string &extensionType) {
 }
 
 void SendManagement::errorNotFound() {
-	std::ifstream ErrorPage((_server.getRoot() + "/404_error.html").c_str(), std::ios::binary);
+	std::ifstream ErrorPage((_server.getRoot() + _server.getErrorPages()).c_str(), std::ios::binary);
 	std::string content;
 	if (ErrorPage) {
 			content.assign((std::istreambuf_iterator<char>(ErrorPage)),
 		                std::istreambuf_iterator<char>());
 	}
-
+	std::cout << "Le contenu de la page 404 est :" << content << " et la error page est : " << _server.getErrorPages() << std::endl;
 	std::stringstream ss;
 	ss << content.size();
 	std::string content_length = ss.str();

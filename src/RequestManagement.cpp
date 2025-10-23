@@ -77,6 +77,19 @@ void RequestManagement::parser(std::string &request)
             _method = word;
         else if ( i == 1 )
         {
+			const std::vector<Location>& locations = _server.getLocations();
+
+			for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+				std::cout << "La methode est " << it->getMethods() << " avec le path " << it->getPath() << " et le path " << _path << " et la _methode est " << _method << std::endl;
+			    if (it->getPath() == word) {
+					if (it->getMethods().find(_method) == std::string::npos) {
+						_path = _server.getRoot() + "/505_error.html";
+						std::cout << "test si ca rentre" << std::endl;
+						break;
+					}
+					break ;
+			    }
+			}
 			if (word == "/")
                 _path = (_server.getRoot() + _server.getIndex()).c_str();
 			else if (word.find(".py") != std::string::npos) {
@@ -84,12 +97,9 @@ void RequestManagement::parser(std::string &request)
 
 			    for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
 			        if (it->getPath() == "/cgi") {
-			            std::cout << "Found CGI location: " << it->getPath() << std::endl;
-			            std::cout << "The root is : " << it->getRoot() << std::endl;
 						size_t pos = word.find("/", 2);
 						word = word.substr(pos);
 			            _path = (it->getRoot() + word).c_str();
-			            std::cout << "The path is : " << _path << std::endl;
 			            break;
 			        }
 			    }
@@ -124,10 +134,7 @@ void RequestManagement::setContentType(std::string &request) {
     posBefore = pos;
     wordSize = request.find("\r\n", pos) - posBefore;
     std::string boundary = request.substr(posBefore, wordSize);
-	// std::cout << "request: "<< request << "|" << std::endl;
-    // std::cout << "content type: " << _contentType << " |" << std::endl;
 	if (_contentType == "multipart/form-data") {
-        // std::cout << "in " << std::endl;
 		_image.parseImage(boundary, _body);
 	}
 }
@@ -139,61 +146,6 @@ bool RequestManagement::checkPath()
     struct stat sb;
     return stat(_path.c_str(), &sb) == 0;
 }
-
-// void RequestManagement::setBody(std::string &request, pollfd &client) 
-// {
-//     size_t pos = request.find("Content-Length:");
-//     if (pos == std::string::npos) {
-//         return;
-//     }
-    
-//     pos = request.find(' ', pos);
-//     if (pos == std::string::npos) return;
-//     pos++;
-    
-//     size_t endPos = request.find("\r\n", pos);
-//     if (endPos == std::string::npos) return;
-    
-//     std::string lengthStr = request.substr(pos, endPos - pos);
-//     size_t contentLength = toUnsignedLong(lengthStr);
-    
-//     size_t bodyStart = request.find("\r\n\r\n");
-//     if (bodyStart == std::string::npos) return;
-//     bodyStart += 4;
-    
-//     if (bodyStart < request.size()) {
-//         _body = request.substr(bodyStart);
-// 		std::cout << "Body deja recu: " << _body.size() << " bytes" << std::endl;
-//     }
-
-//     if (_body.size() >= contentLength) {
-//         std::cout << "Body complet déjà dans request" << std::endl;
-//         _body = _body.substr(0, contentLength);
-//         return;
-//     }
-//     std::cout << "Il manque " << (contentLength - _body.size()) << " bytes" << std::endl;
-// 	char buffer[4096]; 
-//  	while (_body.size() < contentLength) {
-//         size_t remaining = contentLength - _body.size();
-//         size_t toRead = std::min(remaining, sizeof(buffer));
-        
-//         int bytes = recv(client.fd, buffer, toRead, 0);
-        
-// 	    std::cout << "recv() a retourné: " << bytes << std::endl;
-
-//         if (bytes < 0) {
-//             std::cout << "Erreur socket: " << errno << std::endl;
-//             break;
-//         } else if (bytes == 0) {
-//             std::cout << "Connexion fermée par le client" << std::endl;
-//             break;
-//         }
-        
-//         _body.append(buffer, bytes);
-//         std::cout << "Body size maintenant: " << _body.size() << std::endl;
-// 	}
-// 	std::cout << "Body final size: " << _body.size() << " (attendu: " << contentLength << ")" << std::endl;
-// }
 
 void RequestManagement::setBool()
 {

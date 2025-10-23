@@ -82,9 +82,17 @@ int main(int argc, char **argv) {
 							    size_t bodyStart = client.getRequest().find("\r\n\r\n") + 4;
 								client.setState(READING_BODY);
 
-							    if (bodyStart < client.getRequest().size()) {
-							        client.setBody(client.getRequest().substr(bodyStart));
-							    }
+								
+								if (client.getBody().size() >= (RequestManagement::toUnsignedLong(serverInfo.getClientMaxBodySize()) * 1024 * 1024)) {
+									std::cout << "Client disconnected" << std::endl;
+									close(client_fd);
+									serverInfo.removeClients(client_fd);
+									continue;
+								}
+								
+								if (bodyStart < client.getRequest().size()) {
+									client.setBody(client.getRequest().substr(bodyStart));
+								}
 
 							    if (client.getBody().size() >= client.getExpectedBodySize()) {
 									client.setState(PROCESS_REQUEST);
@@ -93,19 +101,18 @@ int main(int argc, char **argv) {
 								client.setState(PROCESS_REQUEST);
 							}
 						}
-						std::cout << "The request is : " << client.getRequest() << std::endl;
+						// std::cout << "The request is : " << client.getRequest() << std::endl;
 					}
 					else if (client.getState() == READING_BODY) {
 						std::string bodyChunck(buffer, bytes_received);
 
 						client.setBody(bodyChunck);
-						// std::cout << "clientmaxbodysize : " << (RequestManagement::toUnsignedLong(serverInfo.getClientMaxBodySize()) * 1024 * 1024) << std::endl;
-						// if (client.getBody().size() >= (RequestManagement::toUnsignedLong(serverInfo.getClientMaxBodySize()) * 1024 * 1024)) {
-						// 	std::cout << "Client disconnected" << std::endl;
-						// 	close(client_fd);
-						// 	serverInfo.removeClients(client_fd);
-						// 	continue;
-						// }
+						if (client.getBody().size() >= (RequestManagement::toUnsignedLong(serverInfo.getClientMaxBodySize()) * 1024 * 1024)) {
+							std::cout << "Client disconnected" << std::endl;
+							close(client_fd);
+							serverInfo.removeClients(client_fd);
+							continue;
+						}
 						if (client.getBody().size() >= client.getExpectedBodySize()) {
 							client.setState(PROCESS_REQUEST);
 						}
