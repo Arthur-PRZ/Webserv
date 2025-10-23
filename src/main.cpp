@@ -25,17 +25,17 @@
 int main(int argc, char **argv) {
 	try {
 		(void)argc;
-		Socket server(AF_INET, SOCK_STREAM, 0);
-		Server serverInfo;
-		server.bind(8080);
-		server.listen();
-
 		std::ifstream configFile(argv[1], std::ios::binary);
 		if (configFile.fail())
 			configFile.open("config.conf", std::ios::binary);
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
+		Socket server(AF_INET, SOCK_STREAM, 0);
+		Server serverInfo;
 		parserConfig(configFile, serverInfo);
+		server.bind(RequestManagement::toInt(serverInfo.getPort()));
+		server.listen();
+
 		while (true) {
 			pollfd *pollclients = server.getClients();
 			int ret = poll(pollclients, server.getClientNbr(), -1);
@@ -99,6 +99,13 @@ int main(int argc, char **argv) {
 						std::string bodyChunck(buffer, bytes_received);
 
 						client.setBody(bodyChunck);
+						// std::cout << "clientmaxbodysize : " << (RequestManagement::toUnsignedLong(serverInfo.getClientMaxBodySize()) * 1024 * 1024) << std::endl;
+						// if (client.getBody().size() >= (RequestManagement::toUnsignedLong(serverInfo.getClientMaxBodySize()) * 1024 * 1024)) {
+						// 	std::cout << "Client disconnected" << std::endl;
+						// 	close(client_fd);
+						// 	serverInfo.removeClients(client_fd);
+						// 	continue;
+						// }
 						if (client.getBody().size() >= client.getExpectedBodySize()) {
 							client.setState(PROCESS_REQUEST);
 						}

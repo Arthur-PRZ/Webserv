@@ -41,7 +41,7 @@ Server &Server::operator=(const Server& other) {
 	return *this;
 }
 
-const std::string &Server::getPort() const {
+std::string &Server::getPort() {
 	return _port;
 }
 
@@ -65,7 +65,7 @@ const std::string &Server::getErrorPages() const {
 	return _errorPages;
 }
 
-const std::string &Server::getClientMaxBodySize() const {
+std::string &Server::getClientMaxBodySize() {
 	return _clientMaxBodySize;
 }
 

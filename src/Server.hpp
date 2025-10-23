@@ -24,13 +24,13 @@ class Server {
 		Server(const Server& other);
 		Server &operator=(const Server& other);
 
-		const std::string &getPort( void ) const;
+		std::string &getPort( void );
 		const std::string &getHost( void ) const;
 		const std::string &getServerName( void ) const;
 		const std::string &getRoot( void ) const;
 		const std::string &getIndex( void ) const;
 		const std::string &getErrorPages( void ) const;
-		const std::string &getClientMaxBodySize( void ) const;
+		std::string &getClientMaxBodySize( void );
 		const std::vector<Location> &getLocations( void ) const;
 	
 		void setPort( const std::string& port );

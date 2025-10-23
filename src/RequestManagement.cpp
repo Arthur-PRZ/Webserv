@@ -78,7 +78,7 @@ void RequestManagement::parser(std::string &request)
         else if ( i == 1 )
         {
 			if (word == "/")
-                _path = (_server.getRoot() + "/index.html").c_str();
+                _path = (_server.getRoot() + _server.getIndex()).c_str();
 			else if (word.find(".py") != std::string::npos) {
 			    const std::vector<Location>& locations = _server.getLocations();
 
