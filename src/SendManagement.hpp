@@ -25,7 +25,7 @@ class SendManagement {
 		void OK(std::string &extensionType);
 		void errorNotFound();
 		void execPythonScript();
-		
+		void errorMethod();
 };
 
 #endif

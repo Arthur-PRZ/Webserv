@@ -30,9 +30,12 @@ void SendManagement::sendResponse(int client_fd) {
 }
 
 void SendManagement::checkRequest(std::string &extensionType) {
-	if (_request.getMethod() == "GET") {
-		// std::cout << "My path is : " << _request.getPath() << std::endl;
-		if (_request.getPageFound() || extensionType == "png" || extensionType == "txt")
+	if (_request.getMethod() == "GET" || _request.isMethodAuthorized() == false) {
+		if (_request.isMethodAuthorized() == false) {
+			std::cout << "test" << std::endl;
+			errorMethod();
+		}
+		else if (_request.getPageFound() || extensionType == "png" || extensionType == "txt")
 			OK(extensionType);
 		else
 			errorNotFound();
@@ -93,14 +96,29 @@ void SendManagement::OK(std::string &extensionType) {
 	_response = "HTTP/1.1 200 OK\r\nContent-Type: " + type + "\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
 
-void SendManagement::errorNotFound() {
-	std::ifstream ErrorPage((_server.getRoot() + _server.getErrorPages()).c_str(), std::ios::binary);
+void SendManagement::errorMethod() {
+	std::ifstream ErrorPage((_server.getRoot() + "/405_error.html").c_str(), std::ios::binary);
 	std::string content;
 	if (ErrorPage) {
 			content.assign((std::istreambuf_iterator<char>(ErrorPage)),
 		                std::istreambuf_iterator<char>());
 	}
-	std::cout << "Le contenu de la page 404 est :" << content << " et la error page est : " << _server.getErrorPages() << std::endl;
+	std::stringstream ss;
+	ss << content.size();
+	std::string content_length = ss.str();
+	_response += "HTTP/1.1 405 NotAllowed\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
+}
+
+void SendManagement::errorNotFound() {
+	if (_server.getErrorPages() == "") {
+		std::ifstream ErrorPage((_server.getRoot() + _server.getErrorPages()).c_str(), std::ios::binary);
+	}
+	std::ifstream ErrorPage((_server.getRoot() + "/404_error.html").c_str(), std::ios::binary);
+	std::string content;
+	if (ErrorPage) {
+			content.assign((std::istreambuf_iterator<char>(ErrorPage)),
+		                std::istreambuf_iterator<char>());
+	}
 	std::stringstream ss;
 	ss << content.size();
 	std::string content_length = ss.str();

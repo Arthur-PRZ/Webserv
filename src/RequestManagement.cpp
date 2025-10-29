@@ -9,13 +9,15 @@
 #include <poll.h>
 #include <string.h>
 
+
+// A implementer -> Page erreur 500 Internal Server Error, 501 Not Implemented (Methode http pas gerer), 505 HTPP Version Not Supported, 403 Forbidden (Pas les perms), 413 Payload Too Large, 415 Unsupported Media Type
 RequestManagement::RequestManagement()
     : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _server(), _image() {}
 
 RequestManagement::RequestManagement(Server server)
     : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
-      _methodFound(false), _pageFound(false), _goodVer(false), _server(server), _image() {}
+      _methodFound(false), _pageFound(false), _goodVer(false), _authorizedMethod(true), _server(server), _image() {}
 
 RequestManagement::~RequestManagement() {}
 
@@ -30,6 +32,7 @@ RequestManagement &RequestManagement::operator=(const RequestManagement &other)
         _methodFound = other._methodFound;
         _pageFound = other._pageFound;
         _goodVer = other._goodVer;
+		_authorizedMethod = other._authorizedMethod;
 		_server = other._server;
 		_image = other._image;
     }
@@ -42,6 +45,7 @@ RequestManagement::RequestManagement(const RequestManagement &other)
           _methodFound(other._methodFound),
           _pageFound(other._pageFound),
           _goodVer(other._goodVer),
+		  _authorizedMethod(other._authorizedMethod),
 		  _server(other._server),
 		  _image(other._image)
 {
@@ -80,19 +84,21 @@ void RequestManagement::parser(std::string &request)
 			const std::vector<Location>& locations = _server.getLocations();
 
 			for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
-				std::cout << "La methode est " << it->getMethods() << " avec le path " << it->getPath() << " et le path " << _path << " et la _methode est " << _method << std::endl;
-			    if (it->getPath() == word) {
+			    if (it->getPath() + "/" == word.substr(0, it->getPath().size() + 1)) {
 					if (it->getMethods().find(_method) == std::string::npos) {
-						_path = _server.getRoot() + "/505_error.html";
-						std::cout << "test si ca rentre" << std::endl;
-						break;
-					}
+						std::cout << "The method is " << _method << 
+						", the it method is " << it->getMethods() << ", the it path is " <<
+						it->getPath() << ", the word is " << word << std::endl;
+							_path = _server.getRoot() + "/405_error.html";
+							_authorizedMethod = false;
+							break;
+						}
 					break ;
 			    }
 			}
-			if (word == "/")
+			if (word == "/" && _authorizedMethod)
                 _path = (_server.getRoot() + _server.getIndex()).c_str();
-			else if (word.find(".py") != std::string::npos) {
+			else if (word.find(".py") != std::string::npos && _authorizedMethod) {
 			    const std::vector<Location>& locations = _server.getLocations();
 
 			    for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
@@ -104,7 +110,7 @@ void RequestManagement::parser(std::string &request)
 			        }
 			    }
 			}
-			else
+			else if (_authorizedMethod)
                 _path = (_server.getRoot() + word).c_str();
         }
         else if ( i == 2 )
@@ -228,4 +234,8 @@ Image RequestManagement::getImage() {
 
 void RequestManagement::setClientBody(std::string body) {
 	_body = body;
+}
+
+bool RequestManagement::isMethodAuthorized() {
+	return _authorizedMethod;
 }

@@ -5,6 +5,13 @@
 Socket::Socket() 
 	: _fd(-1), _clientNbr(0){}
 
+Socket::Socket(const Socket& other) {
+	_fd = other._fd;
+	_clientNbr = other._clientNbr;
+	for (int i = 0; i < _clientNbr; i++)
+		_clients[i] = other._clients[i];
+}
+
 Socket &Socket::operator=(const Socket& other)
 {
 	if (this != &other)

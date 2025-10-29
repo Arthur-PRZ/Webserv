@@ -1,5 +1,18 @@
 #include "Parser.hpp"
 #include <cstddef>
+#include <fstream>
+#include <string>
+
+int findServerNbr(std::ifstream &file) {
+	std::string line;
+	int nbr = 0;
+	while(std::getline(file, line)) {
+		if (line.find("server") != std::string::npos) {
+			nbr++;
+		}
+	}
+	return nbr;
+}
 
 void setLocation(std::ifstream &file, Server &server, const std::string &path)
 {
@@ -49,6 +62,7 @@ void setLocation(std::ifstream &file, Server &server, const std::string &path)
 void parserConfig(std::ifstream &file, Server &server)
 {
     std::string line;
+	bool serverFound = false;
     size_t strSize = 0;
     std::map<std::string, void(Server::*)(const std::string&)> setters;
     setters["host"] = &Server::setHost;
@@ -66,6 +80,12 @@ void parserConfig(std::ifstream &file, Server &server)
 
     while (std::getline(file, line))
     {
+		if (line.find("server") != std::string::npos){
+			if (serverFound) {
+				break ;
+			}
+			serverFound = true;
+		}
         for (curr = setters.begin(); curr != setters.end(); curr++)
         {
 			if (line.find("error_page") != std::string::npos && curr->first == "error_page") {
@@ -74,7 +94,7 @@ void parserConfig(std::ifstream &file, Server &server)
 				value.erase(value.size() - 1);
                 (server.*(curr->second))(value);
 			}
-            else if (line.find(curr->first) != std::string::npos)
+			else if (line.find(curr->first) != std::string::npos)
             {
                 strSize = line.find(curr->first);
                 std::string value = line.substr(strSize + curr->first.size() + 1);

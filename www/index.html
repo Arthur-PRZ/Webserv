@@ -165,17 +165,28 @@
         </section>
     </main>
 
-    <script>
-        function deleteRessource() {
-            const ressource = document.getElementById('ressource').value;
-            fetch("/cgi/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
-                method:'DELETE',
-            })
-            .then(response => response.text())
-            .then(data => {
+<script>
+    function deleteRessource() {
+        const ressource = document.getElementById('ressource').value;
+        fetch("/cgi/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (!response.ok) {
+                window.location.href = "/405_error.html";
+                return;
+            }
+            return response.text();
+        })
+        .then(data => {
+            if (data) {
                 document.getElementById("responseMessage").innerText = data;
-            })
-        }
-    </script>
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+        });
+    }
+</script>
 </body>
 </html>

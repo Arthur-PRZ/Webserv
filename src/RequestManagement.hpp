@@ -20,6 +20,7 @@ class RequestManagement
 	    bool _methodFound;
 	    bool _pageFound;
 	    bool _goodVer;
+		bool _authorizedMethod;
 		Server _server;
 		Image _image;
 
@@ -49,6 +50,9 @@ class RequestManagement
 		bool getMethodFound();
 	    bool getPageFound();
 	    bool getGoodVer();
+		bool isMethodAuthorized();
+
+
 };
 
 #endif

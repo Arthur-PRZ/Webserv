@@ -9,5 +9,6 @@
 
 void setLocation(std::ifstream &file, Server &server, const std::string &path);
 void parserConfig(std::ifstream &file, Server &server);
+int findServerNbr(std::ifstream &file);
 
 #endif 
