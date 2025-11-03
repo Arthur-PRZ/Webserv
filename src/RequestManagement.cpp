@@ -10,7 +10,6 @@
 #include <string.h>
 
 
-// A implementer -> Page erreur 500 Internal Server Error, 501 Not Implemented (Methode http pas gerer), 505 HTPP Version Not Supported, 403 Forbidden (Pas les perms), 413 Payload Too Large, 415 Unsupported Media Type
 RequestManagement::RequestManagement()
     : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _server(), _image() {}
@@ -86,13 +85,10 @@ void RequestManagement::parser(std::string &request)
 			for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
 			    if (it->getPath() + "/" == word.substr(0, it->getPath().size() + 1)) {
 					if (it->getMethods().find(_method) == std::string::npos) {
-						std::cout << "The method is " << _method << 
-						", the it method is " << it->getMethods() << ", the it path is " <<
-						it->getPath() << ", the word is " << word << std::endl;
-							_path = _server.getRoot() + "/405_error.html";
-							_authorizedMethod = false;
-							break;
-						}
+						_authorizedMethod = false;
+						std::cout << _authorizedMethod << std::endl;
+						break;
+					}
 					break ;
 			    }
 			}

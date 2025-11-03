@@ -27,16 +27,20 @@ void SendManagement::sendResponse(int client_fd) {
 		}
 		total_sent += n;
 	}
-}
+} 
 
 void SendManagement::checkRequest(std::string &extensionType) {
 	if (_request.getMethod() == "GET" || _request.isMethodAuthorized() == false) {
-		if (_request.isMethodAuthorized() == false) {
-			std::cout << "test" << std::endl;
-			errorMethod();
+		if (_request.isMethodAuthorized() == 0) {
+			errorMethod();	
+			std::cout << _request.isMethodAuthorized() << std::endl;
+
 		}
-		else if (_request.getPageFound() || extensionType == "png" || extensionType == "txt")
+		else if ((_request.getPageFound() || extensionType == "png" || extensionType == "txt") && _request.isMethodAuthorized() == 1)
+		{
 			OK(extensionType);
+			std::cout << "caca" << std::endl;
+		}
 		else
 			errorNotFound();
 	}
@@ -106,7 +110,7 @@ void SendManagement::errorMethod() {
 	std::stringstream ss;
 	ss << content.size();
 	std::string content_length = ss.str();
-	_response += "HTTP/1.1 405 NotAllowed\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
+	_response += "HTTP/1.1 405 Not Allowed\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
 
 void SendManagement::errorNotFound() {
@@ -122,7 +126,7 @@ void SendManagement::errorNotFound() {
 	std::stringstream ss;
 	ss << content.size();
 	std::string content_length = ss.str();
-	_response += "HTTP/1.1 404 NotFound\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
+	_response += "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
 }
 
 void SendManagement::execPythonScript() {
