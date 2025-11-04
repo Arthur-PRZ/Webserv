@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 				Server *serverInfo = ctx->serverInfo;
 				
 				pollfd *pollclients = server->getClients();
-				int ret = poll(pollclients, server->getClientNbr(), 0); // TIMEOUT 0 pour pas bloquer
+				int ret = poll(pollclients, server->getClientNbr(), 0);
 				if (ret < 0)
 					throw std::runtime_error("poll error");
 	
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 						continue;
 					if (pollclients[i].fd == server->getFd())
 					{
-						int new_fd = server->accept();
+ 						int new_fd = server->accept();
 						serverInfo->addClient(new_fd);
 						std::cout << "Nouveau client: " << new_fd 
 						          << " sur port " << serverInfo->getPort() << std::endl;
@@ -177,8 +177,6 @@ int main(int argc, char **argv) {
 				}
 			}
 		}
-		
-		// Cleanup
 		for (size_t i = 0; i < serverList.size(); ++i) {
 			delete serverList[i];
 		}

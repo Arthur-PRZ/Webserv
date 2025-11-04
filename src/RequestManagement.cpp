@@ -70,6 +70,9 @@ int RequestManagement::toInt(std::string &str)
 
 void RequestManagement::parser(std::string &request)
 {
+	// std::cout << "=== PARSER - REQUEST ===" << std::endl;
+    // std::cout << request.substr(0, 100) << std::endl;  // Affiche le début de la requête
+    // std::cout << "======================" << std::endl;
     std::string word;
     std::istringstream iss(request);
     int i = 0;
@@ -83,31 +86,42 @@ void RequestManagement::parser(std::string &request)
 			const std::vector<Location>& locations = _server.getLocations();
 
 			for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
-			    if (it->getPath() + "/" == word.substr(0, it->getPath().size() + 1)) {
-					if (it->getMethods().find(_method) == std::string::npos) {
-						_authorizedMethod = false;
-						std::cout << _authorizedMethod << std::endl;
-						break;
+				if (word.find("/", 1) != std::string::npos)
+				{
+					if (it->getPath() + "/" == word.substr(0, it->getPath().size() + 1)) {
+						if (it->getMethods().find(_method) == std::string::npos) {
+							_authorizedMethod = false;
+						}
+						break ;
 					}
-					break ;
-			    }
+				}
+				else {
+					if (it->getPath() == word.substr(0, it->getPath().size() + 1)) {
+						if (it->getMethods().find(_method) == std::string::npos) {
+							_authorizedMethod = false;
+						}
+						break ;
+					}
+				}
 			}
-			if (word == "/" && _authorizedMethod)
-                _path = (_server.getRoot() + _server.getIndex()).c_str();
-			else if (word.find(".py") != std::string::npos && _authorizedMethod) {
-			    const std::vector<Location>& locations = _server.getLocations();
-
-			    for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
-			        if (it->getPath() == "/cgi") {
-						size_t pos = word.find("/", 2);
-						word = word.substr(pos);
-			            _path = (it->getRoot() + word).c_str();
-			            break;
-			        }
-			    }
+			if (_authorizedMethod) {
+				if (word == "/")
+					_path = (_server.getRoot() + _server.getIndex()).c_str();
+				else if (word.find(".py") != std::string::npos) {
+					const std::vector<Location>& locations = _server.getLocations();
+	
+					for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+						if (it->getPath() == "/cgi") {
+							size_t pos = word.find("/", 2);
+							word = word.substr(pos);
+							_path = (it->getRoot() + word).c_str();
+							break;
+						}
+					}
+				}
+				else
+					_path = (_server.getRoot() + word).c_str();
 			}
-			else if (_authorizedMethod)
-                _path = (_server.getRoot() + word).c_str();
         }
         else if ( i == 2 )
             _httpVer = word;

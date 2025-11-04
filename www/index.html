@@ -166,27 +166,34 @@
     </main>
 
 <script>
-    function deleteRessource() {
-        const ressource = document.getElementById('ressource').value;
-        fetch("/cgi/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
-            method: 'DELETE',
-        })
-        .then(response => {
-            if (!response.ok) {
-                window.location.href = "/405_error.html";
-                return;
-            }
-            return response.text();
-        })
-        .then(data => {
-            if (data) {
-                document.getElementById("responseMessage").innerText = data;
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-        });
-    }
+	function deleteRessource() {
+	    const ressource = document.getElementById('ressource').value;
+	    fetch("/cgi/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
+	        method: 'DELETE',
+	    })
+	    .then(response => {
+	        if (!response.ok) {
+	            if (response.status === 405) {
+	                document.getElementById("responseMessage").innerText = 
+	                    "❌ Erreur 405: Méthode non autorisée";
+	            } else {
+	                document.getElementById("responseMessage").innerText = 
+	                    "❌ Erreur " + response.status;
+	            }
+	            return;
+	        }
+	        return response.text();
+	    })
+	    .then(data => {
+	        if (data) {
+	            document.getElementById("responseMessage").innerText = "✅ " + data;
+	        }
+	    })
+	    .catch(error => {
+	        console.error('Erreur:', error);
+	        document.getElementById("responseMessage").innerText = "❌ Erreur réseau";
+	    });
+	}
 </script>
 </body>
 </html>
