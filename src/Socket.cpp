@@ -3,7 +3,8 @@
 #include <stdio.h>
 
 Socket::Socket() 
-	: _fd(-1), _clientNbr(0){}
+	: _fd(-1), _clientNbr(0){
+	}
 
 Socket::Socket(const Socket& other) {
 	_fd = other._fd;
@@ -41,14 +42,13 @@ int Socket::getFd() const {
 
 pollfd* Socket::getClients()
 {
-	return _clients;
+	return &_clients[0];
 }
 
-int& Socket::getClientNbr()
+int Socket::getClientNbr()
 {
-	return _clientNbr;
+	return _clients.size();
 }
-
 
 void Socket::bind(int port) {
     int opt = 1;
@@ -64,12 +64,23 @@ void Socket::bind(int port) {
         throw std::runtime_error("bind failed");
 }
 
+void Socket::removeClient(int fd) {
+    for (size_t i = 0; i < _clients.size(); ++i) {
+        if (_clients[i].fd == fd) {
+            _clients.erase(_clients.begin() + i);
+            break;
+        }
+    }
+}
 
 void Socket::listen() {
 	::listen(_fd, SOMAXCONN);
-	_clients[0].fd = _fd;
-	_clients[0].events = POLLIN;
-	_clientNbr++;
+	pollfd server_pollfd;
+	server_pollfd.fd = _fd;
+	server_pollfd.events = POLLIN;
+	server_pollfd.revents = 0;
+	
+	_clients.push_back(server_pollfd);
 }
 
 int Socket::accept() {
@@ -78,9 +89,12 @@ int Socket::accept() {
 	if (client_fd >= 0)
 	{
 		fcntl(client_fd, F_SETFL, O_NONBLOCK);
-		_clients[_clientNbr].fd = client_fd;
-		_clients[_clientNbr].events = POLLIN;
-		_clientNbr++;
+		pollfd client_pollfd;
+		client_pollfd.fd = client_fd;
+		client_pollfd.events = POLLIN;
+		client_pollfd.revents = 0;
+		
+		_clients.push_back(client_pollfd);
 	}
 	else
 		throw("accept error");

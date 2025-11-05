@@ -33,6 +33,7 @@ void SendManagement::sendResponse(int client_fd) {
 } 
 
 void SendManagement::checkRequest(std::string &extensionType) {
+	std::cout << "Rentre dans checkRequest" << std::endl;
 	if (_request.isMethodAuthorized() == false) {
 			errorMethod();
 			std::cout << "DEBUG: Appel de errorMethod()" << std::endl;
@@ -47,6 +48,7 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			errorNotFound();
 	}
 	else if (_request.getMethod() == "POST") {
+		std::cout << "Rentre dans POST" << std::endl;
 		if (_request.getPath() != "./www/upload")
 			execPythonScript();
 		else

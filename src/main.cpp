@@ -22,6 +22,8 @@
 #include "Parser.hpp"
 #include "Client.hpp"
 
+//Objectif 05/11 -> Handle le CTRL + C, LEAK a faire.. et apres FINI :D
+
 struct ServerContext {
 	Socket *socket;
 	Server *serverInfo;
@@ -57,7 +59,7 @@ int main(int argc, char **argv) {
 			
 			parserConfig(configFile, *(ctx->serverInfo));
 			
-			std::cout << "Configuration serveur " << i << " - Port: " 
+			std::cout << "Configuration serveur " << i << " - Port: "
 			          << ctx->serverInfo->getPort() << std::endl;
 			if (ctx->serverInfo->getPort().empty()) {
 				throw std::runtime_error("Port vide pour le serveur ");
@@ -80,36 +82,45 @@ int main(int argc, char **argv) {
 				Socket *server = ctx->socket;
 				Server *serverInfo = ctx->serverInfo;
 				
+				int clientNbr = server->getClientNbr();
+				if (clientNbr == 0)
+					continue;
+					
 				pollfd *pollclients = server->getClients();
-				int ret = poll(pollclients, server->getClientNbr(), 0);
+				
+				int ret = poll(pollclients, clientNbr, 0);
 				if (ret < 0)
 					throw std::runtime_error("poll error");
-	
-				for (int i = 0; i < server->getClientNbr(); i++)
+
+				for (int i = clientNbr - 1; i >= 0; i--)
 				{
 					if (!(pollclients[i].revents & POLLIN))
 						continue;
+						
 					if (pollclients[i].fd == server->getFd())
 					{
- 						int new_fd = server->accept();
+						int new_fd = server->accept();
 						serverInfo->addClient(new_fd);
 						std::cout << "Nouveau client: " << new_fd 
-						          << " sur port " << serverInfo->getPort() << std::endl;
+								<< " sur port " << serverInfo->getPort() << std::endl;
 					}
 					else
 					{
 						int client_fd = pollclients[i].fd;
 						Client &client = serverInfo->getClient(client_fd);
-	
+
 						char buffer[1024];
-						int bytes_received = recv(pollclients[i].fd, buffer, sizeof(buffer) - 1, 0);
+						int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 						if (bytes_received <= 0)
 						{
+							std::cout << "Client déconnecté: " << client_fd << std::endl;
 							close(client_fd);
 							serverInfo->removeClients(client_fd);
+							server->removeClient(client_fd);
 							continue;
 						}
 						buffer[bytes_received] = '\0';
+						
 						if (client.getState() == READING_HEADER)
 						{
 							client.setRequest(buffer);
@@ -125,19 +136,19 @@ int main(int argc, char **argv) {
 									
 									size_t bodyStart = client.getRequest().find("\r\n\r\n") + 4;
 									client.setState(READING_BODY);
-	
-									
+
 									if (client.getBody().size() >= (RequestManagement::toUnsignedLong(serverInfo->getClientMaxBodySize()) * 1024 * 1024)) {
-										std::cout << "Client disconnected" << std::endl;
+										std::cout << "Client disconnected - body too large" << std::endl;
 										close(client_fd);
 										serverInfo->removeClients(client_fd);
+										server->removeClient(i);
 										continue;
 									}
 									
 									if (bodyStart < client.getRequest().size()) {
 										client.setBody(client.getRequest().substr(bodyStart));
 									}
-	
+
 									if (client.getBody().size() >= client.getExpectedBodySize()) {
 										client.setState(PROCESS_REQUEST);
 									}							
@@ -148,21 +159,24 @@ int main(int argc, char **argv) {
 						}
 						else if (client.getState() == READING_BODY) {
 							std::string bodyChunck(buffer, bytes_received);
-	
+
 							client.setBody(bodyChunck);
 							if (client.getBody().size() >= (RequestManagement::toUnsignedLong(serverInfo->getClientMaxBodySize()) * 1024 * 1024)) {
-								std::cout << "Client disconnected" << std::endl;
+								std::cout << "Client disconnected - body too large" << std::endl;
 								close(client_fd);
 								serverInfo->removeClients(client_fd);
+								server->removeClient(i);
 								continue;
 							}
+							std::cout << client.getBody().size() << client.getExpectedBodySize() << std::endl;
 							if (client.getBody().size() >= client.getExpectedBodySize()) {
+								std::cout << "rentre?????????" << std::endl;
 								client.setState(PROCESS_REQUEST);
 							}
 						}
-	
 						if (client.getState() == PROCESS_REQUEST)
 						{
+							std::cout << client.getRequest() << std::endl;
 							RequestManagement requestManagement(*serverInfo);
 							requestManagement.setClientBody(client.getBody());
 							requestManagement.parser(client.getRequest());

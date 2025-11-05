@@ -14,12 +14,13 @@
 #include <stdexcept>
 #include <unistd.h>
 #include <poll.h>
+#include <vector>
 
 class Socket {
 	private:
 		int _fd;
 		int _clientNbr;
-		struct pollfd _clients[100];
+		std::vector<pollfd> _clients;
 
 	public:
 		Socket();
@@ -32,9 +33,9 @@ class Socket {
 		void bind(int port);
 		void listen();
 		int accept();
-
+		void removeClient(int fd);
 		pollfd* getClients();
-		int& getClientNbr();
+		int getClientNbr();
 
 };
 
