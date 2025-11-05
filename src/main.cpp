@@ -21,6 +21,7 @@
 #include "Server.hpp"
 #include "Parser.hpp"
 #include "Client.hpp"
+#include "SignalsHandling.hpp"
 
 //Objectif 05/11 -> Handle le CTRL + C, LEAK a faire.. et apres FINI :D
 
@@ -47,6 +48,9 @@ int main(int argc, char **argv) {
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
         
+		SignalsHandling signalsHandler;
+		signalsHandler.setSignals();
+
 		std::vector<ServerContext*> serverList;
 		int serverNbr = findServerNbr(configFile);
 		
@@ -78,7 +82,7 @@ int main(int argc, char **argv) {
 
 		std::cout << "Tous les serveurs sont lancés !" << std::endl;
 
-		while (true) {
+		while (signalsHandler.getStopStatus() == false) {
 			for (size_t s = 0; s < serverList.size(); ++s) {
 				ServerContext *ctx = serverList[s];
 				Socket *server = ctx->socket;
@@ -92,6 +96,9 @@ int main(int argc, char **argv) {
 				
 				int ret = poll(pollclients, clientNbr, 0);
 				if (ret < 0)
+				{	
+					if (signalsHandler.getStopStatus() == true)
+						break ;
 					throw std::runtime_error("poll error");
 
 				for (int i = clientNbr - 1; i >= 0; i--)
@@ -190,6 +197,7 @@ int main(int argc, char **argv) {
 				}
 			}
 		}
+	}
 		for (size_t i = 0; i < serverList.size(); ++i) {
 			delete serverList[i];
 		}
