@@ -23,8 +23,6 @@
 #include "Client.hpp"
 #include "SignalsHandling.hpp"
 
-//Objectif 05/11 -> Handle le CTRL + C, LEAK a faire.. et apres FINI :D
-
 struct ServerContext {
 	Socket *socket;
 	Server *serverInfo;
@@ -95,12 +93,11 @@ int main(int argc, char **argv) {
 				pollfd *pollclients = server->getClients();
 				
 				int ret = poll(pollclients, clientNbr, 0);
-				if (ret < 0)
-				{	
+				if (ret < 0) {
 					if (signalsHandler.getStopStatus() == true)
 						break ;
 					throw std::runtime_error("poll error");
-
+				}
 				for (int i = clientNbr - 1; i >= 0; i--)
 				{
 					if (!(pollclients[i].revents & POLLIN))
@@ -181,8 +178,7 @@ int main(int argc, char **argv) {
 								client.setState(PROCESS_REQUEST);
 							}
 						}
-						if (client.getState() == PROCESS_REQUEST)
-						{
+						if (client.getState() == PROCESS_REQUEST) {
 							RequestManagement requestManagement(*serverInfo);
 							requestManagement.setClientBody(client.getBody());
 							requestManagement.parser(client.getRequest());
@@ -197,11 +193,9 @@ int main(int argc, char **argv) {
 				}
 			}
 		}
-	}
 		for (size_t i = 0; i < serverList.size(); ++i) {
 			delete serverList[i];
 		}
-		
 	} catch (const std::exception& e) {
 		std::cerr << "ERREUR: " << e.what() << std::endl;
 		return 1;
