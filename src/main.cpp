@@ -21,6 +21,7 @@
 #include "Server.hpp"
 #include "Parser.hpp"
 #include "Client.hpp"
+#include "SignalsHandling.hpp"
 
 struct ServerContext {
 	Socket *socket;
@@ -43,6 +44,9 @@ int main(int argc, char **argv) {
 		if (configFile.fail())
         	throw std::runtime_error("no config file found");
         
+		SignalsHandling signalsHandler;
+		signalsHandler.setSignals();
+
 		std::vector<ServerContext*> serverList;
 		int serverNbr = findServerNbr(configFile);
 		
@@ -74,7 +78,7 @@ int main(int argc, char **argv) {
 
 		std::cout << "Tous les serveurs sont lancés !" << std::endl;
 
-		while (true) {
+		while (signalsHandler.getStopStatus() == false) {
 			for (size_t s = 0; s < serverList.size(); ++s) {
 				ServerContext *ctx = serverList[s];
 				Socket *server = ctx->socket;
@@ -83,8 +87,12 @@ int main(int argc, char **argv) {
 				pollfd *pollclients = server->getClients();
 				int ret = poll(pollclients, server->getClientNbr(), 0);
 				if (ret < 0)
+				{	
+					if (signalsHandler.getStopStatus() == true)
+						break ;
 					throw std::runtime_error("poll error");
-	
+
+				}
 				for (int i = 0; i < server->getClientNbr(); i++)
 				{
 					if (!(pollclients[i].revents & POLLIN))
