@@ -38,8 +38,10 @@ struct ServerContext {
 
 int main(int argc, char **argv) {
 	try {
-		(void)argc;
-		std::ifstream configFile(argv[1], std::ios::binary);
+		std::ifstream configFile("config.conf", std::ios::binary);
+		if (argc == 2) {
+			std::ifstream configFile(argv[1], std::ios::binary);
+		}
 		if (configFile.fail())
 			configFile.open("config.conf", std::ios::binary);
 		if (configFile.fail())
@@ -129,7 +131,7 @@ int main(int argc, char **argv) {
 								size_t pos = client.getRequest().find("Content-Length");
 								if (pos != std::string::npos)
 								{
-									pos = client.getRequest().find(' ', pos) + 1;
+									pos = client.getRequest().find(" ", pos) + 1;
 									size_t endPos = client.getRequest().find("\r\n", pos);
 									std::string lengthStr = client.getRequest().substr(pos, endPos - pos);
 									client.setExpectedBodySize(RequestManagement::toUnsignedLong(lengthStr));
@@ -151,7 +153,7 @@ int main(int argc, char **argv) {
 
 									if (client.getBody().size() >= client.getExpectedBodySize()) {
 										client.setState(PROCESS_REQUEST);
-									}							
+									}
 								} else {
 									client.setState(PROCESS_REQUEST);
 								}
@@ -168,15 +170,12 @@ int main(int argc, char **argv) {
 								server->removeClient(i);
 								continue;
 							}
-							std::cout << client.getBody().size() << client.getExpectedBodySize() << std::endl;
 							if (client.getBody().size() >= client.getExpectedBodySize()) {
-								std::cout << "rentre?????????" << std::endl;
 								client.setState(PROCESS_REQUEST);
 							}
 						}
 						if (client.getState() == PROCESS_REQUEST)
 						{
-							std::cout << client.getRequest() << std::endl;
 							RequestManagement requestManagement(*serverInfo);
 							requestManagement.setClientBody(client.getBody());
 							requestManagement.parser(client.getRequest());
