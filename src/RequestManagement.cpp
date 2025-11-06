@@ -70,9 +70,6 @@ int RequestManagement::toInt(std::string &str)
 
 void RequestManagement::parser(std::string &request)
 {
-	// std::cout << "=== PARSER - REQUEST ===" << std::endl;
-    // std::cout << request.substr(0, 100) << std::endl;  // Affiche le début de la requête
-    // std::cout << "======================" << std::endl;
     std::string word;
     std::istringstream iss(request);
     int i = 0;

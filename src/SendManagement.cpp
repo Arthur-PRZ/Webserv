@@ -1,6 +1,7 @@
 #include "SendManagement.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include <iterator>
 #include <ostream>
 #include <stdexcept>
 #include <sys/socket.h>
@@ -18,9 +19,6 @@ SendManagement::SendManagement(RequestManagement request, Server server) : _resp
 SendManagement::~SendManagement() {}
 
 void SendManagement::sendResponse(int client_fd) {
-	// std::cout << "=== ENVOI REPONSE ===" << std::endl;
-	// std::cout << "Premiers 100 caractères: " << _response.substr(0, 100) << std::endl;
-	
 	size_t total_sent = 0;
 	while (total_sent < _response.size()) {
 		ssize_t n = send(client_fd, _response.c_str() + total_sent,
@@ -35,13 +33,11 @@ void SendManagement::sendResponse(int client_fd) {
 void SendManagement::checkRequest(std::string &extensionType) {
 	if (_request.isMethodAuthorized() == false) {
 			errorMethod();
-			std::cout << "DEBUG: Appel de errorMethod()" << std::endl;
 			return ;
 	}
 	else if (_request.getMethod() == "GET") {
 		if (_request.getPageFound() || extensionType == "png" || extensionType == "txt") {
 			OK(extensionType);
-			std::cout << _request.getPath() << " OK" << std::endl;
 		}
 		else
 			errorNotFound();
@@ -103,29 +99,37 @@ void SendManagement::OK(std::string &extensionType) {
 }
 
 void SendManagement::errorMethod() {
-	std::cout << "=== DEBUT errorMethod() ===" << std::endl;
-	std::ifstream ErrorPage((_server.getRoot() + "/405_error.html").c_str(), std::ios::binary);
+	std::ifstream ErrorPage;
+	std::map<int, std::string> error_pages = _server.getErrorPages();
+	std::map<int, std::string>::iterator it;
+	
+	it = error_pages.find(405);
+	if (it != error_pages.end()) {
+		ErrorPage.open((_server.getRoot() + it->second).c_str(), std::ios::binary);
+	} else {
+		ErrorPage.open((_server.getRoot() + "/405_error.html").c_str(), std::ios::binary);
+	}
 	std::string content;
 	if (ErrorPage) {
 		content.assign((std::istreambuf_iterator<char>(ErrorPage)),
 		               std::istreambuf_iterator<char>());
-		std::cout << "Fichier 405 trouvé, taille: " << content.size() << std::endl;
-	} else {
-		std::cout << "ERREUR: Fichier 405 non trouvé!" << std::endl;
 	}
 	std::stringstream ss;
 	ss << content.size();
 	std::string content_length = ss.str();
 	_response = "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: " + content_length + "\r\n\r\n" + content;
-	
-	std::cout << "Début de _response: " << _response.substr(0, 50) << std::endl;
-	std::cout << "=== FIN errorMethod() ===" << std::endl;
 }
 
 void SendManagement::errorNotFound() {
-	std::ifstream ErrorPage((_server.getRoot() + "/404_error.html").c_str(), std::ios::binary);
-	if (_server.getErrorPages() != "") {
-		std::ifstream ErrorPage((_server.getRoot() + _server.getErrorPages()).c_str(), std::ios::binary);
+	std::ifstream ErrorPage;
+	std::map<int, std::string> error_pages = _server.getErrorPages();
+	std::map<int, std::string>::iterator it;
+	
+	it = error_pages.find(404);
+	if (it != error_pages.end()) {
+		ErrorPage.open((_server.getRoot() + it->second).c_str(), std::ios::binary);
+	} else {
+		ErrorPage.open((_server.getRoot() + "/404_error.html").c_str(), std::ios::binary);
 	}
 	std::string content;
 	if (ErrorPage) {

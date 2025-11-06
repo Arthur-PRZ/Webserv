@@ -1,6 +1,7 @@
 #include "Parser.hpp"
 #include <cstddef>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 int findServerNbr(std::ifstream &file) {
@@ -59,18 +60,18 @@ void setLocation(std::ifstream &file, Server &server, const std::string &path)
     server.addLocation(newLocation);
 }
 
-void parserConfig(std::ifstream &file, Server &server)
+void parserConfig(std::ifstream &file, Server &server, bool isFirst)
 {
     std::string line;
-	bool serverFound = false;
+	bool serverFound = isFirst;
     size_t strSize = 0;
+	std::map<int, std::string> error_pages;
     std::map<std::string, void(Server::*)(const std::string&)> setters;
     setters["host"] = &Server::setHost;
     setters["port"] = &Server::setPort;
     setters["server_name"] = &Server::setServerName;
     setters["root"] = &Server::setRoot;
     setters["index"] = &Server::setIndex;
-    setters["error_page"] = &Server::setErrorPages;
     setters["client_max_body_size"] = &Server::setClientMaxBodySize;
 
     std::map<std::string, void(Server::*)(const std::vector<Location>&)> location;
@@ -86,15 +87,23 @@ void parserConfig(std::ifstream &file, Server &server)
 			}
 			serverFound = true;
 		}
+		if (line.find("error_page") != std::string::npos) {
+			std::istringstream iss(line);
+			std::string key;
+			int code;
+			std::string url;
+
+			iss >> key >> code >> url;
+			if (!url.empty()) {
+				if (url[url.size() - 1] == ';')
+					url.erase(url.size() - 1);
+				error_pages[code] = url;
+			}
+			continue ;
+		}
         for (curr = setters.begin(); curr != setters.end(); curr++)
         {
-			if (line.find("error_page") != std::string::npos && curr->first == "error_page") {
-				size_t pos = line.find("/");
-				std::string value = line.substr(pos);
-				value.erase(value.size() - 1);
-                (server.*(curr->second))(value);
-			}
-			else if (line.find(curr->first) != std::string::npos)
+			if (line.find(curr->first) != std::string::npos)
             {
                 strSize = line.find(curr->first);
                 std::string value = line.substr(strSize + curr->first.size() + 1);
@@ -113,4 +122,6 @@ void parserConfig(std::ifstream &file, Server &server)
             setLocation(file, server, path);
         }
     }
+	if (!error_pages.empty())
+		server.setErrorPages(error_pages);
 }

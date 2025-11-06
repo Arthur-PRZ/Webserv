@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include <iostream>
+#include <map>
 
 Server::Server()
 	: _host(""),
@@ -8,7 +9,7 @@ Server::Server()
 	  _serverName(""),
 	  _root(""),
 	  _index(""),
-	  _errorPages(""),
+	  _errorPages(),
 	  _clientMaxBodySize(""),
 	  _locations(),
 	  _clients() {}
@@ -61,7 +62,7 @@ const std::string &Server::getIndex() const {
 	return _index;
 }
 
-std::string &Server::getErrorPages() {
+std::map<int, std::string> &Server::getErrorPages() {
 	return _errorPages;
 }
 
@@ -93,7 +94,7 @@ void Server::setIndex( const std::string& index ) {
 	_index = index;
 }
 
-void Server::setErrorPages( const std::string& errorPages ) {
+void Server::setErrorPages( const std::map<int, std::string> errorPages ) {
 	_errorPages = errorPages;
 }
 

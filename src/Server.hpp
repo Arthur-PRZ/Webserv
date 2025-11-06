@@ -13,7 +13,7 @@ class Server {
 		std::string _serverName;
 		std::string _root;
 		std::string _index;
-		std::string _errorPages;
+		std::map<int, std::string> _errorPages;
 		std::string _clientMaxBodySize;
 		std::vector<Location> _locations;
 		std::map<int, Client> _clients;
@@ -29,7 +29,7 @@ class Server {
 		const std::string &getServerName( void ) const;
 		const std::string &getRoot( void ) const;
 		const std::string &getIndex( void ) const;
-		std::string &getErrorPages( void );
+		std::map<int, std::string> &getErrorPages( void );
 		std::string &getClientMaxBodySize( void );
 		const std::vector<Location> &getLocations( void ) const;
 	
@@ -38,7 +38,7 @@ class Server {
 		void setServerName( const std::string& serverName );
 		void setRoot( const std::string& root );
 		void setIndex( const std::string& index );
-		void setErrorPages( const std::string& errorPages );
+		void setErrorPages( const std::map<int, std::string> errorPages );
 		void setClientMaxBodySize( const std::string& clientMaxBodySize );
 		void setLocationsServer( const std::vector<Location>& locations );
 

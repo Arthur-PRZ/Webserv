@@ -60,9 +60,12 @@ int main(int argc, char **argv) {
 			ServerContext *ctx = new ServerContext();
 			ctx->socket = new Socket(AF_INET, SOCK_STREAM, 0);
 			ctx->serverInfo = new Server();
-			
-			parserConfig(configFile, *(ctx->serverInfo));
-			
+
+			if (i == 0)
+				parserConfig(configFile, *(ctx->serverInfo), false);
+			else
+				parserConfig(configFile, *(ctx->serverInfo), true);
+
 			std::cout << "Configuration serveur " << i << " - Port: "
 			          << ctx->serverInfo->getPort() << std::endl;
 			if (ctx->serverInfo->getPort().empty()) {
