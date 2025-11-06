@@ -20,13 +20,14 @@ SignalsHandling &SignalsHandling::operator=(const SignalsHandling& other)
 
 void SignalsHandling::signalsHandler(int signal)
 {
-    if (signal == SIGINT)
+    if (signal == SIGINT || signal == SIGQUIT)
         _stop = true;
 }
 
 void SignalsHandling::setSignals()
 {
     std::signal(SIGINT, signalsHandler);
+    std::signal(SIGQUIT, signalsHandler);
 }
 
 bool SignalsHandling::getStopStatus()
