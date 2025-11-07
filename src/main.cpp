@@ -37,15 +37,17 @@ struct ServerContext {
 
 int main(int argc, char **argv) {
 	try {
-		std::ifstream configFile("config.conf", std::ios::binary);
+		std::ifstream configFile;
+
 		if (argc == 2) {
-			std::ifstream configFile(argv[1], std::ios::binary);
+			configFile.open(argv[1], std::ios::binary);
+		} else {
+			configFile.open("config_files/config.conf", std::ios::binary);
 		}
-		if (configFile.fail())
-			configFile.open("config.conf", std::ios::binary);
-		if (configFile.fail())
-        	throw std::runtime_error("no config file found");
-        
+		if (configFile.fail()) {
+			throw std::runtime_error("No config file found");
+		}
+
 		SignalsHandling signalsHandler;
 		signalsHandler.setSignals();
 

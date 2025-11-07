@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://localhost:8086"
+BASE_URL = "http://localhost:8080"
 
 def test_get_root():
     r = requests.get(BASE_URL + "/")
