@@ -17,6 +17,7 @@ class RequestManagement
 	    std::string _body;
 	    std::string _extensionType;
 		std::string _contentType;
+		std::string _urlPath;
 	    bool _methodFound;
 	    bool _pageFound;
 	    bool _goodVer;
@@ -51,8 +52,10 @@ class RequestManagement
 	    bool getPageFound();
 	    bool getGoodVer();
 		bool isMethodAuthorized();
+		std::string &getUrlPath();
 
-
+		Location* findMatchingLocation(const std::string &urlPath);
+		std::string buildPhysicalPath(const std::string &urlPath, Location *location);
 };
 
 #endif

@@ -3,6 +3,8 @@
 #include <string>
 #include "RequestManagement.hpp"
 #include "Server.hpp"
+#include <dirent.h>
+#include <sys/stat.h>
 
 class SendManagement {
 	private:
@@ -26,9 +28,7 @@ class SendManagement {
 		void errorNotFound();
 		void execPythonScript();
 		void errorMethod();
+		void generateDirectoryListing();
 };
 
 #endif
-
-// DELETE ./cgi-bin/delete_ressource.py?ressource= + encoreURIComponent(ressource);
-// GET index.html

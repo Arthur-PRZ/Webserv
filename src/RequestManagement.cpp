@@ -11,11 +11,11 @@
 
 
 RequestManagement::RequestManagement()
-    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
+    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""), _urlPath(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _server(), _image() {}
 
 RequestManagement::RequestManagement(Server server)
-    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""),
+    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""), _urlPath(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _authorizedMethod(true), _server(server), _image() {}
 
 RequestManagement::~RequestManagement() {}
@@ -28,6 +28,8 @@ RequestManagement &RequestManagement::operator=(const RequestManagement &other)
         _path = other._path;
         _httpVer = other._httpVer;
         _body = other._body;
+		_contentType = other._contentType;
+		_urlPath = other._urlPath;
         _methodFound = other._methodFound;
         _pageFound = other._pageFound;
         _goodVer = other._goodVer;
@@ -41,6 +43,7 @@ RequestManagement &RequestManagement::operator=(const RequestManagement &other)
 RequestManagement::RequestManagement(const RequestManagement &other)
         : _method(other._method), _path(other._path),
           _httpVer(other._httpVer), _body(other._body),
+		  _contentType(other._contentType), _urlPath(other._urlPath),
           _methodFound(other._methodFound),
           _pageFound(other._pageFound),
           _goodVer(other._goodVer),
@@ -48,6 +51,75 @@ RequestManagement::RequestManagement(const RequestManagement &other)
 		  _server(other._server),
 		  _image(other._image)
 {
+}
+
+Location* RequestManagement::findMatchingLocation(const std::string &urlPath) {
+    const std::vector<Location>& locations = _server.getLocations();
+    Location* bestMatch = NULL;
+    size_t longestMatch = 0;
+    
+    for (size_t i = 0; i < locations.size(); i++) {
+        std::string locPath = locations[i].getPath();
+        if (urlPath.find(locPath) == 0) {
+            if (urlPath.length() == locPath.length() || urlPath[locPath.length()] == '/' || urlPath[locPath.length()] == '?') {
+				if (locPath.length() > longestMatch) {
+					bestMatch = const_cast<Location*>(&locations[i]);
+					longestMatch = locPath.length();
+				}
+			}
+		}
+	}
+    return bestMatch;
+}
+
+std::string RequestManagement::buildPhysicalPath(const std::string &urlPath, Location *location) {
+    std::string physicalPath;
+    std::string locPath = location->getPath();
+    
+    std::string remainder;
+    if (urlPath.length() > locPath.length()) {
+        remainder = urlPath.substr(locPath.length());
+        if (!remainder.empty() && remainder[0] == '/') {
+            remainder = remainder.substr(1);
+        }
+    }
+    std::string pathPart = remainder;
+    size_t queryPos = remainder.find('?');
+    if (queryPos != std::string::npos) {
+        pathPart = remainder.substr(0, queryPos);
+    }
+    
+    if (!location->getRoot().empty()) {
+        physicalPath = location->getRoot();
+    } else {
+        physicalPath = _server.getRoot();
+    }
+    
+    if (!pathPart.empty()) {
+        if (physicalPath[physicalPath.length() - 1] != '/') {
+            physicalPath += "/";
+        }
+        physicalPath += pathPart;
+    } else {
+        if (urlPath == locPath) {
+            if (urlPath == "/") {
+                std::string index = _server.getIndex();
+                if (!index.empty() && index[0] == '/') {
+                    index = index.substr(1);
+                }
+                if (physicalPath[physicalPath.length() - 1] != '/') {
+                    physicalPath += "/";
+                }
+                physicalPath += index;
+            }
+        }
+    }
+    
+    if (queryPos != std::string::npos) {
+        physicalPath += "?" + remainder.substr(queryPos + 1);
+    }
+    
+    return physicalPath;
 }
 
 unsigned long RequestManagement::toUnsignedLong(std::string &str)
@@ -76,57 +148,62 @@ void RequestManagement::parser(std::string &request)
 
     while (iss >> word && i < 3)
     {
-        if ( i == 0 ) 
+        if (i == 0) {
             _method = word;
-        else if ( i == 1 )
-        {
-			const std::vector<Location>& locations = _server.getLocations();
-
-			for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
-				if (word.find("/", 1) != std::string::npos)
-				{
-					if (it->getPath() + "/" == word.substr(0, it->getPath().size() + 1)) {
-						if (it->getMethods().find(_method) == std::string::npos) {
-							_authorizedMethod = false;
-						}
-						break ;
-					}
-				}
-				else {
-					if (it->getPath() == word.substr(0, it->getPath().size() + 1)) {
-						if (it->getMethods().find(_method) == std::string::npos) {
-							_authorizedMethod = false;
-						}
-						break ;
-					}
-				}
-			}
-			if (_authorizedMethod) {
-				if (word == "/")
-					_path = (_server.getRoot() + _server.getIndex()).c_str();
-				else if (word.find(".py") != std::string::npos) {
-					const std::vector<Location>& locations = _server.getLocations();
-	
-					for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
-						if (it->getPath() == "/cgi") {
-							size_t pos = word.find("/", 2);
-							word = word.substr(pos);
-							_path = (it->getRoot() + word).c_str();
-							break;
-						}
-					}
-				}
-				else
-					_path = (_server.getRoot() + word).c_str();
-			}
         }
-        else if ( i == 2 )
+        else if (i == 1) {
+            _urlPath = word;
+            
+            Location *matchedLocation = findMatchingLocation(_urlPath);
+			if (matchedLocation) {
+				if (matchedLocation->getMethods().find(_method) == std::string::npos) {
+				    _authorizedMethod = false;
+				} else {
+				    _authorizedMethod = true;
+				}
+				_path = buildPhysicalPath(_urlPath, matchedLocation);
+            } else {
+                if (_method == "GET") {
+                    _authorizedMethod = true;
+                    _path = _server.getRoot();
+                    if (_urlPath != "/") {
+                        std::string urlCopy = _urlPath;
+                        if (urlCopy[0] == '/') {
+                            urlCopy = urlCopy.substr(1);
+                        }
+                        if (_path[_path.length() - 1] != '/') {
+                            _path += "/";
+                        }
+                        _path += urlCopy;
+                    } else {
+                        std::string index = _server.getIndex();
+                        if (!index.empty() && index[0] == '/') {
+                            index = index.substr(1);
+                        }
+                        if (_path[_path.length() - 1] != '/') {
+                            _path += "/";
+                        }
+                        _path += index;
+                    }
+                } else {
+                    _authorizedMethod = false;
+                    _path = _server.getRoot() + _urlPath;
+                }
+            }
+        }
+        else if (i == 2) {
             _httpVer = word;
+        }
         i++;
     }
+    
     setBool();
     setExtensionType();
-	setContentType(request);
+    setContentType(request);
+}
+
+std::string &RequestManagement::getUrlPath() {
+    return _urlPath;
 }
 
 void RequestManagement::setContentType(std::string &request) {

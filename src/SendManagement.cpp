@@ -39,6 +39,13 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			return ;
 	}
 	else if (_request.getMethod() == "GET") {
+		std::vector<Location> vector = _server.getLocations();
+		for (size_t i = 0; i < vector.size(); i++) {
+			if (vector[i].getPath() == _request.getUrlPath() && vector[i].getAutoIndex() == true) {
+                generateDirectoryListing();
+                return;
+            }
+		}
 		if (_request.getPageFound() || extensionType == "png" || extensionType == "txt") {
 			OK(extensionType);
 		}
@@ -46,43 +53,138 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			errorNotFound();
 	}
 	else if (_request.getMethod() == "POST") {
-		if (_request.getPath() != "./www/upload"){
-			std::vector<Location> vector = _server.getLocations();
-			for (size_t i = 0; i < vector.size(); i++) {
-				if (vector[i].getPath() == "/cgi") {
-					if (vector[i].getCGIExtensions() != ".py") {
-						errorNotFound();
-						return ;
-					}
-				}
-			}
-			execPythonScript();
-		}
-		else
-		{
-			std::string upload_path;
-			std::vector<Location> vector = _server.getLocations();
+	    if (_request.getUrlPath().find("/upload") != 0) {
+	        std::vector<Location> vector = _server.getLocations();
+	        for (size_t i = 0; i < vector.size(); i++) {
+	            if (vector[i].getPath() == "/cgi") {
+	                if (vector[i].getCGIExtensions() != ".py") {
+	                    errorNotFound();
+	                    return ;
+	                }
+	            }
+	        }
+	        execPythonScript();
+	    }
+	    else {
+	        std::string upload_path;
+	        std::vector<Location> vector = _server.getLocations();
 
-			for (size_t i = 0; i < vector.size(); i++) {
-				if (vector[i].getPath() == "/upload") {
-					upload_path = vector[i].getUploadsPath();
-				}
-			}
-			std::string path =  upload_path + "/" + _request.getImage().getFilename();
-			std::ofstream out(path.c_str(), std::ios::binary);
-			if (out) {
-			    out.write(_request.getImage().getContent().c_str(), _request.getImage().getContent().size());
-				if (!out) {
-					std::cerr << "Erreur d'écriture dans le fichier\n";
-				}
-			    out.close();
-			}
-			_response = "HTTP/1.1 302 Found\r\nLocation: /\r\nContent-Length: 0\r\n\r\n";
-		}
+	        for (size_t i = 0; i < vector.size(); i++) {
+	            if (vector[i].getPath() == "/upload") {
+	                upload_path = vector[i].getUploadsPath();
+	            }
+	        }
+	        std::string path =  upload_path + "/" + _request.getImage().getFilename();
+	        std::ofstream out(path.c_str(), std::ios::binary);
+	        if (out) {
+	            out.write(_request.getImage().getContent().c_str(), _request.getImage().getContent().size());
+	            if (!out) {
+	                std::cerr << "Erreur d'écriture dans le fichier\n";
+	            }
+	            out.close();
+	        }
+	        _response = "HTTP/1.1 302 Found\r\nLocation: /\r\nContent-Length: 0\r\n\r\n";
+	    }
 	}
 	else if (_request.getMethod() == "DELETE") {
 		execPythonScript();
 	}
+}
+
+void SendManagement::generateDirectoryListing() {
+    std::string urlPath = _request.getUrlPath();
+    std::vector<Location> locations = _server.getLocations();
+    std::string physicalPath;
+    
+    for (size_t i = 0; i < locations.size(); i++) {
+        if (locations[i].getPath() == urlPath) {
+            if (!locations[i].getRoot().empty()) {
+                physicalPath = locations[i].getRoot();
+            } else {
+                physicalPath = _server.getRoot();
+            }
+            break;
+        }
+    }
+    
+    if (physicalPath.empty()) {
+        physicalPath = _server.getRoot();
+    }
+    
+    DIR *dir = opendir(physicalPath.c_str());
+    if (!dir) {
+        errorNotFound();
+        return;
+    }
+    
+    std::string html = "<!DOCTYPE html>\n";
+    html += "<html>\n<head>\n";
+    html += "<meta charset=\"UTF-8\">\n";
+    html += "<title>Index of " + urlPath + "</title>\n";
+    html += "<style>\n";
+    html += "body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }\n";
+    html += "h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }\n";
+    html += "hr { border: 1px solid #ddd; margin: 20px 0; }\n";
+    html += "ul { list-style-type: none; padding: 0; background-color: white; border-radius: 5px; }\n";
+    html += "li { padding: 12px 20px; border-bottom: 1px solid #eee; }\n";
+    html += "li:last-child { border-bottom: none; }\n";
+    html += "li:hover { background-color: #f0f8ff; }\n";
+    html += "a { text-decoration: none; color: #0066cc; font-size: 16px; }\n";
+    html += "a:hover { text-decoration: underline; color: #004499; }\n";
+    html += ".folder { font-weight: bold; }\n";
+    html += "</style>\n";
+    html += "</head>\n<body>\n";
+    html += "<h1>Index of " + urlPath + "</h1>\n";
+    html += "<hr>\n<ul>\n";
+    
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        std::string name = entry->d_name;
+        
+        if (name == "." || name == "..")
+            continue;
+        
+        std::string fullPath = physicalPath;
+        if (fullPath[fullPath.length() - 1] != '/')
+            fullPath += "/";
+        fullPath += name;
+        
+        struct stat statbuf;
+        bool isDirectory = false;
+        if (stat(fullPath.c_str(), &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
+            isDirectory = true;
+        }
+        
+        std::string url = urlPath;
+        if (url[url.length() - 1] != '/')
+            url += "/";
+        url += name;
+        
+        std::string displayName = name;
+        std::string cssClass = "";
+        if (isDirectory) {
+            displayName += "/";
+            cssClass = " class=\"folder\"";
+        }
+        
+        html += "<li><a href=\"" + url + "\"" + cssClass + ">" + displayName + "</a></li>\n";
+    }
+    
+    closedir(dir);
+    
+    html += "</ul>\n<hr>\n";
+    html += "<p style=\"color: #888; font-size: 14px;\">Webserv/1.0</p>\n";
+    html += "</body>\n</html>";
+    
+    std::stringstream ss;
+    ss << html.size();
+    std::string content_length = ss.str();
+    
+    _response = "HTTP/1.1 200 OK\r\n";
+    _response += "Content-Type: text/html; charset=UTF-8\r\n";
+    _response += "Content-Length: " + content_length + "\r\n";
+    _response += "\r\n";
+    _response += html;
 }
 
 void SendManagement::OK(std::string &extensionType) {

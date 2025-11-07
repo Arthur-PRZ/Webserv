@@ -19,9 +19,9 @@ def test_post_upload():
     print("[OK] POST /upload")
 
 def test_delete_resource():
-    r = requests.delete(BASE_URL + "/test1.txt")
+    r = requests.delete(BASE_URL + "/uploads/test1.txt")
     assert r.status_code in (200, 204), f"DELETE failed with {r.status_code}"
-    print("[OK] DELETE /test1.txt")
+    print("[OK] DELETE test1.txt")
 
 if __name__ == "__main__":
     print("=== Webserv tests ===")

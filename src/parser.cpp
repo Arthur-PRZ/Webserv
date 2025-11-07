@@ -51,7 +51,7 @@ void setLocation(std::ifstream &file, Server &server, const std::string &path)
         }
         if (line.find("autoindex") != std::string::npos)
         {
-            if (line.find("off"))
+            if (line.find("off") != std::string::npos)
                 newLocation.setAutoIndex(false);
             else
                 newLocation.setAutoIndex(true);
