@@ -45,8 +45,18 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			errorNotFound();
 	}
 	else if (_request.getMethod() == "POST") {
-		if (_request.getPath() != "./www/upload")
+		if (_request.getPath() != "./www/upload"){
+			std::vector<Location> vector = _server.getLocations();
+			for (size_t i = 0; i < vector.size(); i++) {
+				if (vector[i].getPath() == "/cgi") {
+					if (vector[i].getCGIExtensions() != ".py") {
+						errorNotFound();
+						return ;
+					}
+				}
+			}
 			execPythonScript();
+		}
 		else
 		{
 			std::string upload_path;
