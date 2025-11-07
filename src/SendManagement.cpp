@@ -20,16 +20,17 @@ SendManagement::SendManagement(RequestManagement request, Server server) : _resp
 
 SendManagement::~SendManagement() {}
 
-void SendManagement::sendResponse(int client_fd) {
+bool SendManagement::sendResponse(int client_fd) {
 	size_t total_sent = 0;
 	while (total_sent < _response.size()) {
 		ssize_t n = send(client_fd, _response.c_str() + total_sent,
 		                     _response.size() - total_sent, 0);
 		if (n <= 0) {
-			throw std::runtime_error("send failed");
+			return false;
 		}
 		total_sent += n;
 	}
+	return true;
 } 
 
 void SendManagement::checkRequest(std::string &extensionType) {
@@ -71,6 +72,9 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			std::ofstream out(path.c_str(), std::ios::binary);
 			if (out) {
 			    out.write(_request.getImage().getContent().c_str(), _request.getImage().getContent().size());
+				if (!out) {
+					std::cerr << "Erreur d'écriture dans le fichier\n";
+				}
 			    out.close();
 			}
 			_response = "HTTP/1.1 302 Found\r\nLocation: /\r\nContent-Length: 0\r\n\r\n";
@@ -220,13 +224,26 @@ void SendManagement::execPythonScript() {
 		close(pipeIn[0]);
 		close(pipeOut[1]);
 		if (!_request.getBody().empty())
-			write(pipeIn[1], _request.getBody().c_str(), _request.getBody().size());
+		{
+			if (write(pipeIn[1], _request.getBody().c_str(), _request.getBody().size()) <= 0)
+    		{
+				std::cout << "write failed" << std::endl;
+				return ;
+			}
+		}
 		close(pipeIn[1]);
 		std::string cgiOutput;
 		char buffer[1024];
 		ssize_t bytesRead;
-		while ((bytesRead = read(pipeOut[0], buffer, sizeof(buffer))) > 0)
+		while ((bytesRead = read(pipeOut[0], buffer, sizeof(buffer))))
+		{
+			if (bytesRead <= 0)
+			{
+				std::cout << "read failed" << std::endl;
+				return ;
+			}
 			cgiOutput.append(buffer, bytesRead);
+		}
 		close(pipeOut[0]);
 		int status;
 		waitpid(pid, &status, 0);

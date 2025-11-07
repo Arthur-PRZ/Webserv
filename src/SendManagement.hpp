@@ -18,7 +18,7 @@ class SendManagement {
 		SendManagement(const SendManagement& other);
 		SendManagement &operator=(const SendManagement& other);
 
-		void sendResponse(int client_fd);
+		bool sendResponse(int client_fd);
 		const std::string &getResponse() const;
 		int &getResponseSize();
 		void checkRequest(std::string &extensionType);

@@ -190,7 +190,14 @@ int main(int argc, char **argv) {
 							
 							SendManagement sendManagement(requestManagement, *serverInfo);
 							sendManagement.checkRequest(requestManagement.getExtensionType());
-							sendManagement.sendResponse(client_fd);
+							if (sendManagement.sendResponse(client_fd) == false)
+							{
+								std::cout << "Client disconnected - body too large" << std::endl;
+								close(client_fd);
+								serverInfo->removeClients(client_fd);
+								server->removeClient(i);
+								continue;
+							}
 							client.reset();
 							client.setState(READING_HEADER);
 						}
