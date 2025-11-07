@@ -14,7 +14,7 @@ def test_get_not_found():
 
 def test_post_upload():
     data = {"name": "42"}
-    r = requests.post(BASE_URL + "/upload", data=data)
+    r = requests.post(BASE_URL + "/uploads", data=data)
     assert r.status_code in (200, 201), f"POST failed with {r.status_code}"
     print("[OK] POST /upload")
 

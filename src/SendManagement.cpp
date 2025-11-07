@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <vector>
+#include <cstdio>
 
 SendManagement::SendManagement() : _response(""), _request() , _server(){}
 
@@ -53,7 +54,7 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			errorNotFound();
 	}
 	else if (_request.getMethod() == "POST") {
-	    if (_request.getUrlPath().find("/upload") != 0) {
+	    if (_request.getUrlPath().find("/uploads") != 0) {
 	        std::vector<Location> vector = _server.getLocations();
 	        for (size_t i = 0; i < vector.size(); i++) {
 	            if (vector[i].getPath() == "/cgi") {
@@ -70,7 +71,7 @@ void SendManagement::checkRequest(std::string &extensionType) {
 	        std::vector<Location> vector = _server.getLocations();
 
 	        for (size_t i = 0; i < vector.size(); i++) {
-	            if (vector[i].getPath() == "/upload") {
+	            if (vector[i].getPath() == "/uploads") {
 	                upload_path = vector[i].getUploadsPath();
 	            }
 	        }
@@ -87,7 +88,11 @@ void SendManagement::checkRequest(std::string &extensionType) {
 	    }
 	}
 	else if (_request.getMethod() == "DELETE") {
-		execPythonScript();
+		if (std::remove(_request.getFileToDelete().c_str()) == 0) {
+			_response += "HTTP/1.1 204 No Content\r\nContent-Length: 0\r\n\r\n";
+		} else {
+			errorNotFound();
+		}
 	}
 }
 

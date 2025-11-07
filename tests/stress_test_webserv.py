@@ -23,15 +23,14 @@ TESTS = [
     {"method": "GET", "path": "/doesnotexist.html", "expected": 404},
 
     # === POST ===
-    {"method": "POST", "path": "/upload", "expected": [200, 201]},
-    {"method": "DELETE", "path": "/upload", "expected": 405},
+    {"method": "POST", "path": "/uploads", "expected": [200, 201]},
 
     # === DELETE ===
-    {"method": "DELETE", "path": "/to_delete.txt", "expected": [200, 204, 404]},
+    {"method": "DELETE", "path": "/uploads/test1.txt", "expected": [200, 204, 404]},
     {"method": "DELETE", "path": "/", "expected": 405},
 
     # === CGI / Autres ===
-    {"method": "GET", "path": "/cgi-bin/hello.py", "expected": [200, 500]},
+    {"method": "GET", "path": "/cgi/hello.py", "expected": [200, 500]},
 ]
 
 # === Couleurs du terminal ===
@@ -116,5 +115,4 @@ if __name__ == "__main__":
     for url in BASE_URLS:
         run_all_tests_for_server(url)
         mini_stress_test(url, "/", "GET", 100)
-        mini_stress_test(url, "/upload", "POST", 100)
-        mini_stress_test(url, "/to_delete.txt", "DELETE", 100)
+        mini_stress_test(url, "/uploads", "POST", 100)

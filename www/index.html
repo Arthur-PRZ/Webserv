@@ -144,7 +144,7 @@
         </section>
 
         <section>
-            <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <form id="uploadForm" action="/uploads" method="POST" enctype="multipart/form-data">
                 <label for="file">Choisissez un fichier :</label>
                 <input type="file" name="file" id="file">
                 <input type="submit" value="Envoyer">
@@ -155,9 +155,9 @@
             <form id="deleteForm">
                 <label for="ressource">Sélectionnez une ressource à supprimer :</label>
                 <select id="ressource" name="ressource">
-                    <option value="test1">test1.txt</option>
-                    <option value="test2">test2.png</option>
-                    <option value="test3">test3.png</option>
+                    <option value="test1.txt">test1.txt</option>
+                    <option value="test2.png">test2.png</option>
+                    <option value="test3.png">test3.png</option>
                 </select>
                 <button type="button" onclick="deleteRessource()">Supprimer</button>
             </form>
@@ -168,7 +168,7 @@
 <script>
 	function deleteRessource() {
 	    const ressource = document.getElementById('ressource').value;
-	    fetch("/cgi/deleteRessource.py?resource=" + encodeURIComponent(ressource), {
+	    fetch("/uploads/" + encodeURIComponent(ressource), {
 	        method: 'DELETE',
 	    })
 	    .then(response => {
@@ -176,23 +176,23 @@
 	            if (response.status === 405) {
 	                document.getElementById("responseMessage").innerText = 
 	                    "❌ Erreur 405: Méthode non autorisée";
-	            } else {
+	            } else if (response.status === 404) {
+					document.getElementById("responseMessage").innerText = 
+	                    "❌ Erreur 404: Fichier introuvable";
+				} else {
 	                document.getElementById("responseMessage").innerText = 
 	                    "❌ Erreur " + response.status;
 	            }
 	            return;
 	        }
+			else {
+				if (response.status === 204) {
+					document.getElementById("responseMessage").innerText = 
+						"✅ " + ressource + " deleted sucessfully";
+				}
+			}
 	        return response.text();
 	    })
-	    .then(data => {
-	        if (data) {
-	            document.getElementById("responseMessage").innerText = "✅ " + data;
-	        }
-	    })
-	    .catch(error => {
-	        console.error('Erreur:', error);
-	        document.getElementById("responseMessage").innerText = "❌ Erreur réseau";
-	    });
 	}
 </script>
 </body>

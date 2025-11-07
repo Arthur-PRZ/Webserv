@@ -11,11 +11,11 @@
 
 
 RequestManagement::RequestManagement()
-    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""), _urlPath(""),
+    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""), _urlPath(""), _fileToDelete(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _server(), _image() {}
 
 RequestManagement::RequestManagement(Server server)
-    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""), _urlPath(""),
+    : _method(""), _path(""), _httpVer(""), _body(""), _contentType(""), _urlPath(""), _fileToDelete(""),
       _methodFound(false), _pageFound(false), _goodVer(false), _authorizedMethod(true), _server(server), _image() {}
 
 RequestManagement::~RequestManagement() {}
@@ -30,6 +30,7 @@ RequestManagement &RequestManagement::operator=(const RequestManagement &other)
         _body = other._body;
 		_contentType = other._contentType;
 		_urlPath = other._urlPath;
+		_fileToDelete = other._fileToDelete;
         _methodFound = other._methodFound;
         _pageFound = other._pageFound;
         _goodVer = other._goodVer;
@@ -44,6 +45,7 @@ RequestManagement::RequestManagement(const RequestManagement &other)
         : _method(other._method), _path(other._path),
           _httpVer(other._httpVer), _body(other._body),
 		  _contentType(other._contentType), _urlPath(other._urlPath),
+		  _fileToDelete(other._fileToDelete),
           _methodFound(other._methodFound),
           _pageFound(other._pageFound),
           _goodVer(other._goodVer),
@@ -89,7 +91,9 @@ std::string RequestManagement::buildPhysicalPath(const std::string &urlPath, Loc
         pathPart = remainder.substr(0, queryPos);
     }
     
-    if (!location->getRoot().empty()) {
+	if (!location->getUploadsPath().empty()) {
+		physicalPath = location->getUploadsPath();
+	} else if (!location->getRoot().empty()) {
         physicalPath = location->getRoot();
     } else {
         physicalPath = _server.getRoot();
@@ -114,11 +118,11 @@ std::string RequestManagement::buildPhysicalPath(const std::string &urlPath, Loc
             }
         }
     }
-    
+	_fileToDelete = physicalPath;
     if (queryPos != std::string::npos) {
         physicalPath += "?" + remainder.substr(queryPos + 1);
     }
-    
+	
     return physicalPath;
 }
 
@@ -322,4 +326,8 @@ void RequestManagement::setClientBody(std::string body) {
 
 bool RequestManagement::isMethodAuthorized() {
 	return _authorizedMethod;
+}
+
+std::string &RequestManagement::getFileToDelete() {
+	return _fileToDelete;
 }

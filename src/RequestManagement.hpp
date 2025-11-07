@@ -18,6 +18,7 @@ class RequestManagement
 	    std::string _extensionType;
 		std::string _contentType;
 		std::string _urlPath;
+		std::string _fileToDelete;
 	    bool _methodFound;
 	    bool _pageFound;
 	    bool _goodVer;
@@ -53,6 +54,7 @@ class RequestManagement
 	    bool getGoodVer();
 		bool isMethodAuthorized();
 		std::string &getUrlPath();
+		std::string &getFileToDelete();
 
 		Location* findMatchingLocation(const std::string &urlPath);
 		std::string buildPhysicalPath(const std::string &urlPath, Location *location);
