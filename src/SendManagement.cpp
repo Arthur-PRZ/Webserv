@@ -1,4 +1,5 @@
 #include "SendManagement.hpp"
+#include "Location.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <iterator>
@@ -11,6 +12,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <vector>
 
 SendManagement::SendManagement() : _response(""), _request() , _server(){}
 
@@ -47,7 +49,15 @@ void SendManagement::checkRequest(std::string &extensionType) {
 			execPythonScript();
 		else
 		{
-			std::string path = "./www/uploads/" + _request.getImage().getFilename();
+			std::string upload_path;
+			std::vector<Location> vector = _server.getLocations();
+
+			for (size_t i = 0; i < vector.size(); i++) {
+				if (vector[i].getPath() == "/upload") {
+					upload_path = vector[i].getUploadsPath();
+				}
+			}
+			std::string path =  upload_path + "/" + _request.getImage().getFilename();
 			std::ofstream out(path.c_str(), std::ios::binary);
 			if (out) {
 			    out.write(_request.getImage().getContent().c_str(), _request.getImage().getContent().size());

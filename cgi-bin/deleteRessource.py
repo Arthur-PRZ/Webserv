@@ -10,7 +10,7 @@ if not resource:
     print("Error: No resource specified")
     sys.exit(1)
 
-upload_dir = "www/uploads"  # ou le chemin absolu
+upload_dir = "./uploads"  # ou le chemin absolu
 file_path = os.path.join(upload_dir, resource)
 
 if ".." in resource or resource.startswith("/"):
