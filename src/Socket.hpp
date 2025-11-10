@@ -30,7 +30,7 @@ class Socket {
 		~Socket();
 
 		int getFd() const;
-		void bind(int port);
+		int bind(int port);
 		void listen();
 		int accept();
 		void removeClient(int fd);

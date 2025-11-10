@@ -105,7 +105,9 @@ void SendManagement::generateDirectoryListing() {
         if (locations[i].getPath() == urlPath) {
             if (!locations[i].getRoot().empty()) {
                 physicalPath = locations[i].getRoot();
-            } else {
+            } else if (!locations[i].getUploadsPath().empty()) {
+				physicalPath = locations[i].getUploadsPath();
+			} else {
                 physicalPath = _server.getRoot();
             }
             break;

@@ -74,7 +74,13 @@ int main(int argc, char **argv) {
 				throw std::runtime_error("Port vide pour le serveur ");
 			}
 
-			ctx->socket->bind(RequestManagement::toInt(ctx->serverInfo->getPort()));
+			if (ctx->socket->bind(RequestManagement::toInt(ctx->serverInfo->getPort()))) {
+				for (int j = 0; j < i; j++) {
+					delete serverList[j];
+				}
+				delete ctx;
+				throw std::runtime_error("bind failed");
+			}
 			ctx->socket->listen();
 			
 			std::cout << "Serveur " << i << " en écoute sur port " 

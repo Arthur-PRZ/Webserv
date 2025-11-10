@@ -50,18 +50,19 @@ int Socket::getClientNbr()
 	return _clients.size();
 }
 
-void Socket::bind(int port) {
+int Socket::bind(int port) {
     int opt = 1;
     if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-        throw std::runtime_error("setsockopt failed");
+        return -1;
 
     sockaddr_in addr;
     std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(port);
-    if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
-        throw std::runtime_error("bind failed");
+	if (::bind(_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+		return -1;
+	return 0;
 }
 
 void Socket::removeClient(int fd) {
