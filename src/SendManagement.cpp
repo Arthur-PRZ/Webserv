@@ -88,7 +88,7 @@ void SendManagement::checkRequest(std::string &extensionType) {
 	    }
 	}
 	else if (_request.getMethod() == "DELETE") {
-		if (std::remove(_request.getFileToDelete().c_str()) == 0) {
+		if (std::remove(_request.getFileToDelete().c_str()) == 0 && _request.getUrlPath().find("../") == std::string::npos) {
 			_response += "HTTP/1.1 204 No Content\r\nContent-Length: 0\r\n\r\n";
 		} else {
 			errorNotFound();
